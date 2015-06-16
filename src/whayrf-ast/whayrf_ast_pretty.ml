@@ -20,7 +20,7 @@ let pretty_var (Var(i, mfs)) =
 ;;
 
 let pretty_record_element (key, value) =
-  (pretty_ident key) ^ (pretty_var value)
+  (pretty_ident key) ^ " = " ^ (pretty_var value)
 ;;
 
 let pretty_record_value (Record_value(is)) =
@@ -40,6 +40,7 @@ and pretty_clause_body b =
     | Var_body(x) -> pretty_var x
     | Value_body(v) -> pretty_value v
     | Appl_body(x1,x2) -> pretty_var x1 ^ " " ^ pretty_var x2
+    | Projection_body(x,l) -> pretty_var x ^ "." ^ pretty_ident l
     | Conditional_body(x,p,f1,f2) ->
         pretty_var x ^ " ~ " ^ pretty_pattern p ^ " ? " ^
         pretty_function_value f1 ^ " : " ^ pretty_function_value f2
@@ -50,9 +51,18 @@ and pretty_clause (Clause(x,b)) =
 and pretty_expr (Expr(cls)) =
   concat_sep "; " @@ Enum.map pretty_clause @@ List.enum cls
 
+and pretty_record_pattern_element (key, value) =
+  (pretty_ident key) ^ " : " ^ (pretty_pattern value)
+
 and pretty_pattern p =
   match p with
     | Record_pattern(is) ->
-        concat_sep_delim "{" "}" ", " @@ Enum.map pretty_ident @@
-          Ident_set.enum is
+        concat_sep_delim "{" "}" ", " @@ Enum.map pretty_record_pattern_element @@
+        Ident_hashtbl.enum is
+    | Function_pattern(p1, p2) ->
+      (pretty_pattern p1) ^ " ~> { " ^ (pretty_pattern p2) ^ " }"
+    | Pattern_variable_pattern(i) ->
+      pretty_ident i
+    | Forall_pattern(i, p) ->
+      "forall " ^ (pretty_ident i) ^ " . " ^ (pretty_pattern p)
 ;;

@@ -35,19 +35,19 @@ Library "whayrf-ast"
     batteries,
     whayrf-utils
 
-Library "whayrf-parser"
-  Path: src/whayrf-parser
-  Modules:
-    Whayrf_generated_lexer,
-    Whayrf_generated_parser,
-    Whayrf_parser
-  BuildDepends:
-    batteries,
-    whayrf-ast,
-    whayrf-utils
-  BuildTools+:
-    ocamllex,
-    menhir
+# Library "whayrf-parser"
+#   Path: src/whayrf-parser
+#   Modules:
+#     Whayrf_generated_lexer,
+#     Whayrf_generated_parser,
+#     Whayrf_parser
+#   BuildDepends:
+#     batteries,
+#     whayrf-ast,
+#     whayrf-utils
+#   BuildTools+:
+#     ocamllex,
+#     menhir
 
 # Library "whayrf-interpreter"
 #   Path: src/whayrf-interpreter

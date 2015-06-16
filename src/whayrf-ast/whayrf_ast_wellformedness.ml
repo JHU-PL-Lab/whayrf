@@ -78,6 +78,7 @@ let rec vars_free_in_expr (Expr(cls_initial)) =
                       | Value_record(Record_value(_)) -> Var_set.empty
                   end
               | Appl_body(x1',x2') -> Var_set.of_list [x1';x2']
+              | Projection_body(x,i) -> Var_set.of_list [x]
               | Conditional_body(x',p,f1,f2) ->
                   List.fold_left Var_set.union Var_set.empty
                     [ Var_set.singleton x'

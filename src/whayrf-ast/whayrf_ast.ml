@@ -75,6 +75,7 @@ and clause_body =
   | Value_body of value
   | Var_body of var
   | Appl_body of var * var
+  | Projection_body of var * ident
   | Conditional_body of var * pattern * function_value * function_value
 
 (** A type to represent clauses. *)
@@ -85,5 +86,8 @@ and expr = Expr of clause list
 
 (** A type representing conditional patterns. *)
 and pattern =
-  | Record_pattern of Ident_set.t
+  | Record_pattern of pattern Ident_hashtbl.t
+  | Function_pattern of pattern * pattern
+  | Pattern_variable_pattern of ident
+  | Forall_pattern of ident * pattern
 ;;
