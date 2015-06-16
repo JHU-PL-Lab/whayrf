@@ -1,15 +1,15 @@
 (**
-   Contains data type definitions for the toy language AST.
+   Contains data type definitions for the whayrf language AST.
 *)
 
 open Batteries;;
-open Toy_ast_uid;;
-open Toy_utils;;
+open Whayrf_ast_uid;;
+open Whayrf_utils;;
 
 (** A module for hashtables keyed by UIDs. *)
-module Ast_uid_hashtbl = Toy_ast_uid.Ast_uid_hashtbl;;
+module Ast_uid_hashtbl = Whayrf_ast_uid.Ast_uid_hashtbl;;
 
-(** A data type for identifiers in the toy language. *)
+(** A data type for identifiers in the whayrf language. *)
 type ident = Ident of string;;
 
 module Ident_hash =
@@ -59,10 +59,10 @@ module Var_hashtbl = Hashtbl.Make(
   end
 );;
 
-(** A type to express toy "record" values. *)
+(** A type to express whayrf "record" values. *)
 type record_value = Record_value of Ident_set.t
 
-(** A type to express toy function values. *)
+(** A type to express whayrf function values. *)
 and function_value = Function_value of var * expr
 
 (** A type to represent values. *)

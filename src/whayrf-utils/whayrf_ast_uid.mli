@@ -1,6 +1,6 @@
 (**
   Provides support mechanisms for the AST module.  This module should not be
-  used directly; the Toy_ast module should be used instead.
+  used directly; the Whayrf_ast module should be used instead.
 *)
 
 (**/**)

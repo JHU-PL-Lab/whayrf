@@ -1,8 +1,8 @@
-toy:
+whayrf:
   image: leafac/big-bang:0.0.1
   volumes:
-    - .:/home/opam/toy-language
-  working_dir: /home/opam/toy-language
+    - .:/home/opam/whayrf
+  working_dir: /home/opam/whayrf
   entrypoint: ["bash", "-ic"]
   command: ["
              # Use the OASIS metadata to generate a configuration script.

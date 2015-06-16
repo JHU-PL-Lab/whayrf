@@ -6,11 +6,11 @@
 open Batteries;;
 open Printf;;
 
-open Toy_ast;;
-open Toy_ast_pretty;;
-open Toy_ast_uid;;
-open Toy_string_utils;;
-open Toy_utils;;
+open Whayrf_ast;;
+open Whayrf_ast_pretty;;
+open Whayrf_ast_uid;;
+open Whayrf_string_utils;;
+open Whayrf_utils;;
 
 type illformedness =
   | Filter_cycle of var list

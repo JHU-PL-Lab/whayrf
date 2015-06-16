@@ -12,10 +12,10 @@
 open Batteries;;
 open OUnit2;;
 
-open Toy_ast_wellformedness;;
-open Toy_interpreter;;
-open Toy_parser;;
-open Toy_utils;;
+open Whayrf_ast_wellformedness;;
+open Whayrf_interpreter;;
+open Whayrf_parser;;
+open Whayrf_utils;;
 
 exception File_test_creation_failure of string;;
 
@@ -43,7 +43,7 @@ let make_test filename expectation =
   test_name >::
     function _ ->
       (* Begin by parsing the file. *)
-      let expr = File.with_file_in filename Toy_parser.parse_toy_program in
+      let expr = File.with_file_in filename Whayrf_parser.parse_whayrf_program in
       (* Verify that it is well-formed. *)
       check_wellformed_expr expr;
       (* Now, based on our expectation, do the right thing. *)
@@ -98,7 +98,7 @@ let make_all_tests pathname =
       Sys.files_of pathname
         |> Enum.map (fun f -> pathname ^ Filename.dir_sep ^ f)
         |> Enum.filter (fun f -> not @@ Sys.is_directory f)
-        |> Enum.filter (fun f -> String.ends_with f ".toy")
+        |> Enum.filter (fun f -> String.ends_with f ".whayrf")
         |> Enum.map make_test_from
         |> List.of_enum
     else
@@ -106,4 +106,4 @@ let make_all_tests pathname =
         "Test file directory " ^ pathname ^ " is missing"))
 ;;
 
-let tests = "Test_toy_files" >::: make_all_tests "test-sources";;
+let tests = "Test_whayrf_files" >::: make_all_tests "test-sources";;

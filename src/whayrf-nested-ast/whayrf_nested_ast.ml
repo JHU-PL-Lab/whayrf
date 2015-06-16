@@ -1,11 +1,11 @@
 (**
-   Contains data type definitions for the AST of the *nested* toy language.
+   Contains data type definitions for the AST of the *nested* whayrf language.
 *)
 
 open Batteries;;
-open Toy_ast;;
-open Toy_ast_uid;;
-open Toy_utils;;
+open Whayrf_ast;;
+open Whayrf_ast_uid;;
+open Whayrf_utils;;
 
 (** Expressions in the nested language. *)
 type expr =

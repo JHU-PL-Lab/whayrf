@@ -1,10 +1,10 @@
-Name: ToyLanguage
+Name: Whayrf
 Version: 0.1
-Synopsis: A base toy language project.
+Synopsis: Programming language with function pattern matching.
 Authors: JHU PL Lab <pl.cs@jhu.edu>
 License: BSD-4-clause
 
-Description: A toy language used for proof-of-concept language development.
+Description: The implementation of the language described in the "What is Your Function?" paper.
 Homepage: http://www.big-bang-lang.org/
 
 OASISFormat: 0.4
@@ -13,114 +13,114 @@ Plugins: META (0.4), DevFiles (0.4)
 AlphaFeatures: ocamlbuild_more_args
 XOCamlbuildExtraArgs: -use-menhir -use-ocamlfind
 
-Library "toy-utils"
-  Path: src/toy-utils
+Library "whayrf-utils"
+  Path: src/whayrf-utils
   Modules:
-    Toy_ast_uid,
-    Toy_logger,
-    Toy_parser_support,
-    Toy_source_origin,
-    Toy_string_utils,
-    Toy_utils
+    whayrf_ast_uid,
+    whayrf_logger,
+    whayrf_parser_support,
+    whayrf_source_origin,
+    whayrf_string_utils,
+    whayrf_utils
   BuildDepends:
     batteries
 
-Library "toy-ast"
-  Path: src/toy-ast
+Library "whayrf-ast"
+  Path: src/whayrf-ast
   Modules:
-    Toy_ast,
-    Toy_ast_pretty,
-    Toy_ast_wellformedness
+    whayrf_ast,
+    whayrf_ast_pretty,
+    whayrf_ast_wellformedness
   BuildDepends:
     batteries,
-    toy-utils
+    whayrf-utils
 
-Library "toy-parser"
-  Path: src/toy-parser
+Library "whayrf-parser"
+  Path: src/whayrf-parser
   Modules:
-    Toy_generated_lexer,
-    Toy_generated_parser,
-    Toy_parser
+    whayrf_generated_lexer,
+    whayrf_generated_parser,
+    whayrf_parser
   BuildDepends:
     batteries,
-    toy-ast,
-    toy-utils
+    whayrf-ast,
+    whayrf-utils
   BuildTools+:
     ocamllex,
     menhir
 
-Library "toy-interpreter"
-  Path: src/toy-interpreter
+Library "whayrf-interpreter"
+  Path: src/whayrf-interpreter
   Modules:
-    Toy_interpreter
+    whayrf_interpreter
   BuildDepends:
     batteries,
-    toy-ast,
-    toy-utils
+    whayrf-ast,
+    whayrf-utils
 
-Library "toy-nested-ast"
-  Path: src/toy-nested-ast
+Library "whayrf-nested-ast"
+  Path: src/whayrf-nested-ast
   Modules:
-    Toy_nested_ast
+    whayrf_nested_ast
   BuildDepends:
     batteries,
-    toy-ast,
-    toy-utils
+    whayrf-ast,
+    whayrf-utils
 
-Library "toy-nested-parser"
-  Path: src/toy-nested-parser
+Library "whayrf-nested-parser"
+  Path: src/whayrf-nested-parser
   Modules:
-    Toy_nested_generated_lexer,
-    Toy_nested_generated_parser,
-    Toy_nested_parser
+    whayrf_nested_generated_lexer,
+    whayrf_nested_generated_parser,
+    whayrf_nested_parser
   BuildDepends:
     batteries,
-    toy-nested-ast,
-    toy-utils
+    whayrf-nested-ast,
+    whayrf-utils
   BuildTools+:
     ocamllex,
     menhir
     
-Library "toy-a-translator"
-  Path: src/toy-a-translator
+Library "whayrf-a-translator"
+  Path: src/whayrf-a-translator
   Modules:
-    Toy_a_translator
+    whayrf_a_translator
   BuildDepends:
     batteries,
-    toy-ast,
-    toy-nested-ast,
-    toy-utils
+    whayrf-ast,
+    whayrf-nested-ast,
+    whayrf-utils
 
-Executable "toy-toploop"
-  Path: src/toy-toploop
-  MainIs: toy_toploop.ml
+Executable "whayrf-toploop"
+  Path: src/whayrf-toploop
+  MainIs: whayrf_toploop.ml
   BuildDepends:
-    toy-ast,
-    toy-interpreter,
-    toy-parser,
+    whayrf-ast,
+    whayrf-interpreter,
+   whayrf-parser,
     batteries
 
-Executable "toy-nested-toploop"
-  Path: src/toy-nested-toploop
-  MainIs: toy_nested_toploop.ml
+Executable "whayrf-nested-toploop"
+  Path: src/whayrf-nested-toploop
+  MainIs: whayrf_nested_toploop.ml
   BuildDepends:
-    toy-a-translator,
-    toy-ast,
-    toy-nested-ast,
-    toy-interpreter,
-    toy-nested-parser,
+    whayrf-a-translator,
+    whayrf-ast,
+    whayrf-nested-ast,
+    whayrf-interpreter,
+    whayrf-nested-parser,
     batteries
 
-Executable "test-toy"
+Executable "test-whayrf"
   Path: test/
-  MainIs: test_toy.ml
+  MainIs: test_whayrf.ml
   BuildDepends:
-    toy-interpreter,
-    toy-parser,
-    toy-utils,
+    whayrf-interpreter,
+    whayrf-parser,
+    whayrf-utils,
     oUnit,
     batteries
 
-Test test_toy
-  Command: $test_toy
+Test test_whayrf
+  Command: $test_whayrf
 

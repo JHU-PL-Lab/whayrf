@@ -1,5 +1,5 @@
 {
-  open Toy_nested_generated_parser;;
+  open Whayrf_nested_generated_parser;;
 }
 
 let digit = ['0'-'9']

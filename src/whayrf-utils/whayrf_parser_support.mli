@@ -6,8 +6,8 @@ directly.
 
 open Batteries;;
 
-open Toy_ast_uid;;
-open Toy_source_origin;;
+open Whayrf_ast_uid;;
+open Whayrf_source_origin;;
 
 val reset_ast_position_hash : unit -> unit
 

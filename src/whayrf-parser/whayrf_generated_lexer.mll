@@ -1,6 +1,6 @@
 {
-  open Toy_parser_support;;
-  open Toy_generated_parser;;
+  open Whayrf_parser_support;;
+  open Whayrf_generated_parser;;
 }
 
 let digit = ['0'-'9']

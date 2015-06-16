@@ -1,8 +1,8 @@
 open Batteries;;
 
-open Toy_ast_pretty;;
-open Toy_ast_wellformedness;;
-open Toy_interpreter;;
+open Whayrf_ast_pretty;;
+open Whayrf_ast_wellformedness;;
+open Whayrf_interpreter;;
 
 let toploop_operate e =
   print_string "\n";
@@ -26,12 +26,12 @@ let toploop_operate e =
 ;;
 
 let () =
-  print_string "Toy Toploop\n";
+  print_string "Whayrf Toploop\n";
   print_string "--------------------\n";
   print_string "\n";
   print_string "Please enter an expression to evaluate followed by \";;\".\n";
   print_string "\n";
   flush stdout;
-  Toy_parser.parse_toy_expressions IO.stdin
+  Whayrf_parser.parse_whayrf_expressions IO.stdin
     |> LazyList.iter toploop_operate
 ;;

@@ -1,5 +1,5 @@
-open Toy_ast_uid;;
-open Toy_source_origin;;
+open Whayrf_ast_uid;;
+open Whayrf_source_origin;;
 
 let ast_position_hash : file_region Ast_uid_hashtbl.t ref
 = ref (Ast_uid_hashtbl.create(10))

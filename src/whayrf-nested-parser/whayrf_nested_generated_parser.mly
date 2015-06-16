@@ -1,7 +1,7 @@
 %{
-open Toy_ast;;
-open Toy_ast_uid;;
-open Toy_nested_ast;;
+open Whayrf_ast;;
+open Whayrf_ast_uid;;
+open Whayrf_nested_ast;;
 open Lexing;;
 %}
 
@@ -22,8 +22,8 @@ open Lexing;;
 %token DOUBLE_SEMICOLON
 %token EOF
 
-%start <Toy_nested_ast.expr> prog
-%start <Toy_nested_ast.expr option> delim_expr
+%start <Whayrf_nested_ast.expr> prog
+%start <Whayrf_nested_ast.expr option> delim_expr
 
 %%
 

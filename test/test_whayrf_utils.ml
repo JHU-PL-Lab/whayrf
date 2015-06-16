@@ -1,9 +1,9 @@
 open OUnit2
 
-open Toy_string_utils;;
+open Whayrf_string_utils;;
 
 let natural_compare_seq_returns_0_for_empty_list _ =
-  assert_equal 0 (Toy_utils.natural_compare_seq [])
+  assert_equal 0 (Whayrf_utils.natural_compare_seq [])
   
 let pretty_list_list pretty lst =
   pretty_list (pretty_list pretty) lst
@@ -11,7 +11,7 @@ let pretty_list_list pretty lst =
 
 let cartesian_product_tests =
   let do_test lst1 lst2 _ =
-    assert_equal (Toy_utils.cartesian_product_of_list lst1) lst2
+    assert_equal (Whayrf_utils.cartesian_product_of_list lst1) lst2
   in
   let make_test (lst1,lst2) =
     let test_name = "cartesian_product_of_list " ^
@@ -41,7 +41,7 @@ let cartesian_product_tests =
       )
     ]
 
-let tests = "Toy_utils" >::: [
+let tests = "Whayrf_utils" >::: [
       "natural_compare_seq returns 0 for empty list" >:: natural_compare_seq_returns_0_for_empty_list;
     ] @
     cartesian_product_tests

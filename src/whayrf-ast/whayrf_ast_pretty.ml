@@ -1,7 +1,7 @@
 open Batteries;;
 
-open Toy_ast;;
-open Toy_string_utils;;
+open Whayrf_ast;;
+open Whayrf_string_utils;;
 
 let pretty_ident (Ident s) = s;;
 

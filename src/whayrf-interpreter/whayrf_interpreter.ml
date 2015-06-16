@@ -1,10 +1,10 @@
 open Batteries;;
 
-open Toy_ast;;
-open Toy_ast_pretty;;
-open Toy_ast_uid;;
+open Whayrf_ast;;
+open Whayrf_ast_pretty;;
+open Whayrf_ast_uid;;
 
-let logger = Toy_logger.make_logger "Toy_interpreter";;
+let logger = Whayrf_logger.make_logger "Whayrf_interpreter";;
 
 module Environment = Var_hashtbl;;
 

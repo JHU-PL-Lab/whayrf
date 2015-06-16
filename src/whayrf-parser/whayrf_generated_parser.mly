@@ -1,8 +1,8 @@
 %{
-open Toy_ast;;
-open Toy_ast_uid;;
-open Toy_parser_support;;
-open Toy_source_origin;;
+open Whayrf_ast;;
+open Whayrf_ast_uid;;
+open Whayrf_parser_support;;
+open Whayrf_source_origin;;
 open Lexing;;
 %}
 
@@ -20,8 +20,8 @@ open Lexing;;
 %token KEYWORD_FUN 
 %token DOUBLE_SEMICOLON 
 
-%start <Toy_ast.expr> prog
-%start <Toy_ast.expr option> delim_expr
+%start <Whayrf_ast.expr> prog
+%start <Whayrf_ast.expr option> delim_expr
 
 %%
 

@@ -26,7 +26,7 @@
  *    with a name that identifies the module. For example, in `tiny_bang_toploop.ml`:
  *
  *    ```ocaml
- *    let logger = Toy_logger.make_logger "Toy_toploop"
+ *    let logger = Whayrf_logger.make_logger "Whayrf_toploop"
  *    ```
  *
  * 3. Add log entries. For example:
