@@ -77,11 +77,16 @@ value:
       { Value_function($1) }
   ;
 
+record_element:
+  | identifier EQUALS variable
+      { ($1,$3) }
+  ;
+
 record_value:
   | OPEN_BRACE CLOSE_BRACE
-  |   { Record_value(Ident_set.empty) }
-  | OPEN_BRACE separated_nonempty_trailing_list(COMMA, identifier) CLOSE_BRACE
-      { Record_value(Ident_set.of_list $2) }
+  |   { Record_value(Ident_hashtbl.create 20) }
+  | OPEN_BRACE separated_nonempty_trailing_list(COMMA, record_element) CLOSE_BRACE
+      { Record_value(Ident_hashtbl.of_enum (Batteries.List.enum $2)) }
   ;
   
 function_value:

@@ -49,14 +49,14 @@ Library "whayrf-parser"
     ocamllex,
     menhir
 
-Library "whayrf-interpreter"
-  Path: src/whayrf-interpreter
-  Modules:
-    Whayrf_interpreter
-  BuildDepends:
-    batteries,
-    whayrf-ast,
-    whayrf-utils
+# Library "whayrf-interpreter"
+#   Path: src/whayrf-interpreter
+#   Modules:
+#     Whayrf_interpreter
+#   BuildDepends:
+#     batteries,
+#     whayrf-ast,
+#     whayrf-utils
 
 # Library "whayrf-nested-ast"
 #   Path: src/whayrf-nested-ast
@@ -91,14 +91,14 @@ Library "whayrf-interpreter"
 #     whayrf-nested-ast,
 #     whayrf-utils
 
-Executable "whayrf-toploop"
-  Path: src/whayrf-toploop
-  MainIs: whayrf_toploop.ml
-  BuildDepends:
-    whayrf-ast,
-    whayrf-interpreter,
-    whayrf-parser,
-    batteries
+# Executable "whayrf-toploop"
+#   Path: src/whayrf-toploop
+#   MainIs: whayrf_toploop.ml
+#   BuildDepends:
+#     whayrf-ast,
+#     whayrf-interpreter,
+#     whayrf-parser,
+#     batteries
 
 # Executable "whayrf-nested-toploop"
 #   Path: src/whayrf-nested-toploop
@@ -111,16 +111,16 @@ Executable "whayrf-toploop"
 #     whayrf-nested-parser,
 #     batteries
 
-Executable "test-whayrf"
-  Path: test/
-  MainIs: test_whayrf.ml
-  BuildDepends:
-    whayrf-interpreter,
-    whayrf-parser,
-    whayrf-utils,
-    oUnit,
-    batteries
+# Executable "test-whayrf"
+#   Path: test/
+#   MainIs: test_whayrf.ml
+#   BuildDepends:
+#     whayrf-interpreter,
+#     whayrf-parser,
+#     whayrf-utils,
+#     oUnit,
+#     batteries
 
-Test test_whayrf
-  Command: $test_whayrf
+# Test test_whayrf
+#   Command: $test_whayrf
 

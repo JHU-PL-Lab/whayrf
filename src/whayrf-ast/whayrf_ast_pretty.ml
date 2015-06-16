@@ -19,8 +19,12 @@ let pretty_var (Var(i, mfs)) =
     | Some fs -> pretty_ident i ^ pretty_freshening_stack fs
 ;;
 
+let pretty_record_element (key, value) =
+  (pretty_ident key) ^ (pretty_var value)
+;;
+
 let pretty_record_value (Record_value(is)) =
-  concat_sep_delim "{" "}" ", " @@ Enum.map pretty_ident @@ Ident_set.enum is
+  concat_sep_delim "{" "}" ", " @@ Enum.map pretty_record_element @@ Ident_hashtbl.enum is
 ;;
 
 let rec pretty_function_value (Function_value(x,e)) =

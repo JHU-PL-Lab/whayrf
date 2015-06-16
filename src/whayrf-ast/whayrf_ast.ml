@@ -59,8 +59,8 @@ module Var_hashtbl = Hashtbl.Make(
   end
 );;
 
-(** A type to express whayrf "record" values. *)
-type record_value = Record_value of Ident_set.t
+(** A type to express whayrf record values. *)
+type record_value = Record_value of var Ident_hashtbl.t
 
 (** A type to express whayrf function values. *)
 and function_value = Function_value of var * expr
