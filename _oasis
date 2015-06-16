@@ -16,21 +16,21 @@ XOCamlbuildExtraArgs: -use-menhir -use-ocamlfind
 Library "whayrf-utils"
   Path: src/whayrf-utils
   Modules:
-    whayrf_ast_uid,
-    whayrf_logger,
-    whayrf_parser_support,
-    whayrf_source_origin,
-    whayrf_string_utils,
-    whayrf_utils
+    Whayrf_ast_uid,
+    Whayrf_logger,
+    Whayrf_parser_support,
+    Whayrf_source_origin,
+    Whayrf_string_utils,
+    Whayrf_utils
   BuildDepends:
     batteries
 
 Library "whayrf-ast"
   Path: src/whayrf-ast
   Modules:
-    whayrf_ast,
-    whayrf_ast_pretty,
-    whayrf_ast_wellformedness
+    Whayrf_ast,
+    Whayrf_ast_pretty,
+    Whayrf_ast_wellformedness
   BuildDepends:
     batteries,
     whayrf-utils
@@ -38,9 +38,9 @@ Library "whayrf-ast"
 Library "whayrf-parser"
   Path: src/whayrf-parser
   Modules:
-    whayrf_generated_lexer,
-    whayrf_generated_parser,
-    whayrf_parser
+    Whayrf_generated_lexer,
+    Whayrf_generated_parser,
+    Whayrf_parser
   BuildDepends:
     batteries,
     whayrf-ast,
@@ -52,7 +52,7 @@ Library "whayrf-parser"
 Library "whayrf-interpreter"
   Path: src/whayrf-interpreter
   Modules:
-    whayrf_interpreter
+    Whayrf_interpreter
   BuildDepends:
     batteries,
     whayrf-ast,
@@ -61,7 +61,7 @@ Library "whayrf-interpreter"
 Library "whayrf-nested-ast"
   Path: src/whayrf-nested-ast
   Modules:
-    whayrf_nested_ast
+    Whayrf_nested_ast
   BuildDepends:
     batteries,
     whayrf-ast,
@@ -70,9 +70,9 @@ Library "whayrf-nested-ast"
 Library "whayrf-nested-parser"
   Path: src/whayrf-nested-parser
   Modules:
-    whayrf_nested_generated_lexer,
-    whayrf_nested_generated_parser,
-    whayrf_nested_parser
+    Whayrf_nested_generated_lexer,
+    Whayrf_nested_generated_parser,
+    Whayrf_nested_parser
   BuildDepends:
     batteries,
     whayrf-nested-ast,
@@ -84,7 +84,7 @@ Library "whayrf-nested-parser"
 Library "whayrf-a-translator"
   Path: src/whayrf-a-translator
   Modules:
-    whayrf_a_translator
+    Whayrf_a_translator
   BuildDepends:
     batteries,
     whayrf-ast,
@@ -97,7 +97,7 @@ Executable "whayrf-toploop"
   BuildDepends:
     whayrf-ast,
     whayrf-interpreter,
-   whayrf-parser,
+    whayrf-parser,
     batteries
 
 Executable "whayrf-nested-toploop"
