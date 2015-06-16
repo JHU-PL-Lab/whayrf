@@ -21,9 +21,12 @@ rule token = parse
   | ","                              { COMMA }
   | "="                              { EQUALS }
   | "->"                             { ARROW }
+  | "~>"                             { TILDE_ARROW }
   | "?"                              { QUESTION_MARK }
   | "~"                              { TILDE }
   | ":"                              { COLON }
+  | "."                              { DOT }
   | "fun"                            { KEYWORD_FUN }
+  | "forall"                         { KEYWORD_FORALL }
   | ident_start ident_cont* as s     { IDENTIFIER s }
   | ";;"                             { DOUBLE_SEMICOLON }

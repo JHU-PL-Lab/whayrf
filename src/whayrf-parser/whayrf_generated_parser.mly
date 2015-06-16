@@ -14,10 +14,13 @@ open Lexing;;
 %token COMMA
 %token EQUALS 
 %token ARROW 
+%token TILDE_ARROW 
 %token QUESTION_MARK 
 %token TILDE 
 %token COLON 
+%token DOT 
 %token KEYWORD_FUN 
+%token KEYWORD_FORALL 
 %token DOUBLE_SEMICOLON 
 
 %start <Whayrf_ast.expr> prog
@@ -66,6 +69,8 @@ clause_body:
       { Var_body($1) }
   | variable variable
       { Appl_body($1,$2) }
+  | variable DOT identifier
+      { Projection_body($1,$3) }
   | variable TILDE pattern QUESTION_MARK function_value COLON function_value
       { Conditional_body($1,$3,$5,$7) }
   ;
@@ -94,9 +99,20 @@ function_value:
       { Function_value($2,$5) }
   ;
 
+record_pattern_element:
+  | identifier COLON pattern
+      { ($1,$3) }
+  ;
+
 pattern:
-  | OPEN_BRACE separated_nonempty_trailing_list(COMMA, identifier) CLOSE_BRACE
-      { Record_pattern(Ident_set.of_list $2) }
+  | OPEN_BRACE separated_nonempty_trailing_list(COMMA, record_pattern_element) CLOSE_BRACE
+      { Record_pattern(Ident_hashtbl.of_enum (Batteries.List.enum $2)) }
+  | OPEN_BRACE pattern CLOSE_BRACE TILDE_ARROW OPEN_BRACE pattern CLOSE_BRACE
+      { Function_pattern($2,$6) }
+  | identifier
+      { Pattern_variable_pattern($1) }
+  | KEYWORD_FORALL identifier DOT pattern
+      { Forall_pattern($2,$4) }
   ;
 
 separated_nonempty_trailing_list(separator, rule):
