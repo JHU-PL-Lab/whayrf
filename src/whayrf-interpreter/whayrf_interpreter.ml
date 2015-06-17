@@ -110,34 +110,32 @@ let fresh_wire (Function_value(param_x, Expr(body))) arg_x call_site_x =
   [head_clause] @ freshened_body @ [tail_clause]
 ;;
 
-let rec is_compatible value env pattern =
-  match value with
-    | Value_record(Record_value(is)) ->
-        begin
-          match pattern with
-          | Record_pattern(js) ->
-            Ident_hashtbl.fold (
-              fun label pattern' result ->
-                result &&
-                Ident_hashtbl.mem is label &&
-                let value' = lookup env @@ Ident_hashtbl.find is label in
-                is_compatible value' env pattern'
-            ) js true
-          | _ ->
-            (* TODO: The first pass of implementation is ignoring the "forall"
-                     and "exists" rules. We're always failing to match, which is
-                     a good default because we're always failing to produce a
-                     proof (that's bad but not incorrect). We need to come back
-                     here and implement this right. *)
-            false
-        end
-    | Value_function(Function_value(_)) ->
-      (* TODO: The first pass of implementation is ignoring the function pattern
-               matching rule, which is the crux of the paper. We're always
-               failing to match, which is a good default because we're always
-               failing to produce a proof (that's bad but not incorrect). We
-               need to come back here and implement this right. *)
-      false
+let rec is_compatible value env pattern dispatch_table =
+  match pattern with
+  | Record_pattern(js) ->
+    begin
+      match value with
+      | Value_record(Record_value(is)) ->
+        Ident_hashtbl.fold (
+          fun label pattern' result ->
+            result &&
+            Ident_hashtbl.mem is label &&
+            let value' = lookup env @@ Ident_hashtbl.find is label in
+            is_compatible value' env pattern' dispatch_table
+        ) js true
+      | Value_function(_) -> false
+    end
+
+  | Function_pattern(parameter_pattern, body_pattern) ->
+    begin
+      match value with
+      | Value_record(_) -> false
+      | Value_function(_) -> dispatch_table value pattern
+    end
+
+  | Pattern_variable_pattern(_)
+  | Forall_pattern(_) ->
+    dispatch_table value pattern
 ;;
 
 let rec evaluate env lastvar cls =
@@ -193,7 +191,13 @@ let rec evaluate env lastvar cls =
                                                   " as it contains non-record " ^ pretty_value f))
           end
       | Conditional_body(x',p,f1,f2) ->
-        let successful_match = is_compatible (lookup env x') env p in
+        (* TODO: The first pass of implementation is ignoring the dispatch
+                 table, because we need the type system to make it work and the
+                 type system doesn't exist yet. We're always failing to match,
+                 which is a good default because we're always failing to produce
+                 a proof (that's bad but not incorrect). We need to come back
+                 here and implement this right. *)
+        let successful_match = is_compatible (lookup env x') env p (fun value pattern -> false) in
         let f_target = if successful_match then f1 else f2 in
         evaluate env (Some x) @@ fresh_wire f_target x' x @ t            
 ;;
