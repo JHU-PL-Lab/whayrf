@@ -40,6 +40,7 @@ and var_replace_clause_body fn r =
   | Value_body(v) -> Value_body(var_replace_value fn v)
   | Var_body(x) -> Var_body(fn x)
   | Appl_body(x1, x2) -> Appl_body(fn x1, fn x2)
+  | Projection_body(x,l) -> Projection_body(fn x, l)
   | Conditional_body(x,p,f1,f2) ->
       Conditional_body(fn x, p, var_replace_function_value fn f1,
         var_replace_function_value fn f2)
@@ -125,15 +126,30 @@ let rec evaluate env lastvar cls =
               | Value_function(f) ->
                   evaluate env (Some x) @@ fresh_wire f x'' x @ t
           end
+      | Projection_body(x',l) ->
+          begin
+            match lookup env x' with
+            | Value_record(Record_value(r)) ->
+              let v = lookup env @@ Ident_hashtbl.find r l in
+              Environment.add env x v;
+              evaluate env (Some x) t
+            | Value_function(_) as f -> raise (Evaluation_failure
+                                                 ("cannot select " ^ pretty_var x' ^
+                                                  " as it contains non-record " ^ pretty_value f))
+          end
       | Conditional_body(x',p,f1,f2) ->
-          let successful_match =
-                match lookup env x' with
-                  | Value_record(Record_value(is)) ->
-                      begin
-                        match p with
-                          | Record_pattern(is') -> Ident_set.subset is' is
-                      end
-                  | Value_function(Function_value(_)) -> false
+        let successful_match =
+          (* TODO: Implement the correct compatibility (pattern matching) rules. *)
+          false
+                (* match lookup env x' with *)
+                (*   | Value_record(Record_value(is)) -> *)
+                (*       begin *)
+                (*         match p with *)
+                (*         | Record_pattern(is') -> *)
+                (*           Ident_set.subset (Ident_set.of_enum (Ident_hashtbl.keys is')) *)
+                (*             (Ident_set.of_enum (Ident_hashtbl.keys is)) *)
+                (*       end *)
+                (*   | Value_function(Function_value(_)) -> false *)
           in
           let f_target = if successful_match then f1 else f2 in
           evaluate env (Some x) @@ fresh_wire f_target x' x @ t            
