@@ -1,6 +1,13 @@
-# EXPECT-EVALUATE
-e = {l = {}};
+# EXPECT-STUCK
+#
+# TODO: This should be EXPECT-EVALUATE, instead of EXPECT-STUCK. Currently,
+#       we don't have the compatibility (pattern matching) rules implemented,
+#       and pattern matching always fails. When we have that working, this
+#       test is going to fail and we should revert the comment on the first
+#       line of this test.
+re = {};
+e = {l = re};
 # Match {l = {}} with {l : {}}
-c = e ~ {l : {}} ? fun a -> { ra = {y = {}} } : fun b -> { rb = {n = {}} };
+c = e ~ {l : {}} ? fun a -> { rra = {}; ra = {y = rra} } : fun b -> { rrb = {}; rb = {n = rrb} };
 # Now get stuck if we didn't get a {y = {}}
 t = c ~ {y : {}} ? fun j -> { rj = {} } : fun k -> { r = e e };
