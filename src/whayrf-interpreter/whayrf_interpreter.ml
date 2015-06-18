@@ -19,9 +19,18 @@ let pretty_env (env : value Environment.t) =
   "{ " ^ inner ^ " }"
   ;;
 
+exception Evaluation_failure of string;;
+
 let lookup env x =
-  (* TODO: Handle Not_found in a more graceful manner? Custom exception? *)
-  Environment.find env x
+  if Environment.mem env x then
+    Environment.find env x
+  else
+    raise (
+        Evaluation_failure (
+          "cannot find variable `" ^ (pretty_var x) ^ "' in environment `" ^ (pretty_env env) ^ "'."
+        )
+      )
+;;
 
 let bound_vars_of_expr (Expr(cls)) =
   cls
@@ -47,14 +56,24 @@ and var_replace_clause_body fn r =
 
 and var_replace_value fn v =
   match v with
-  | Value_record(_) -> v
+  | Value_record(r) ->
+    Value_record(var_replace_record_value fn r)
   | Value_function(f) -> Value_function(var_replace_function_value fn f)
+
+and var_replace_record_value fn (Record_value r) =
+  Record_value(
+    r
+    |> Ident_hashtbl.enum
+    |> Enum.map (
+      fun (k, v) ->
+        (k, fn v)
+    )
+    |> Ident_hashtbl.of_enum
+  )
 
 and var_replace_function_value fn (Function_value(x, e)) =
   Function_value(fn x, var_replace_expr fn e)
       
-exception Evaluation_failure of string;;
-
 let freshening_stack_from_var x =
   let Var(appl_i, appl_fso) = x in
   (* The freshening stack of a call site at top level is always
@@ -89,6 +108,34 @@ let fresh_wire (Function_value(param_x, Expr(body))) arg_x call_site_x =
   let Clause(last_var, _) = List.last freshened_body in
   let tail_clause = Clause(call_site_x, Var_body(last_var)) in
   [head_clause] @ freshened_body @ [tail_clause]
+;;
+
+let rec is_compatible value env pattern dispatch_table =
+  match pattern with
+  | Record_pattern(js) ->
+    begin
+      match value with
+      | Value_record(Record_value(is)) ->
+        Ident_hashtbl.fold (
+          fun label pattern' result ->
+            result &&
+            Ident_hashtbl.mem is label &&
+            let value' = lookup env @@ Ident_hashtbl.find is label in
+            is_compatible value' env pattern' dispatch_table
+        ) js true
+      | Value_function(_) -> false
+    end
+
+  | Function_pattern(parameter_pattern, body_pattern) ->
+    begin
+      match value with
+      | Value_record(_) -> false
+      | Value_function(_) -> dispatch_table value pattern
+    end
+
+  | Pattern_variable_pattern(_)
+  | Forall_pattern(_) ->
+    dispatch_table value pattern
 ;;
 
 let rec evaluate env lastvar cls =
@@ -129,30 +176,30 @@ let rec evaluate env lastvar cls =
       | Projection_body(x',l) ->
           begin
             match lookup env x' with
-            | Value_record(Record_value(r)) ->
-              let v = lookup env @@ Ident_hashtbl.find r l in
-              Environment.add env x v;
-              evaluate env (Some x) t
+            | Value_record(Record_value(r)) as value_record ->
+              if Ident_hashtbl.mem r l then
+                let v = lookup env @@ Ident_hashtbl.find r l in
+                Environment.add env x v;
+                evaluate env (Some x) t
+              else
+                raise (Evaluation_failure
+                  ("cannot find label " ^ pretty_ident l ^
+                   " in variable " ^ pretty_var x' ^
+                   " that contains record " ^ pretty_value value_record))
             | Value_function(_) as f -> raise (Evaluation_failure
                                                  ("cannot select " ^ pretty_var x' ^
                                                   " as it contains non-record " ^ pretty_value f))
           end
       | Conditional_body(x',p,f1,f2) ->
-        let successful_match =
-          (* TODO: Implement the correct compatibility (pattern matching) rules. *)
-          false
-                (* match lookup env x' with *)
-                (*   | Value_record(Record_value(is)) -> *)
-                (*       begin *)
-                (*         match p with *)
-                (*         | Record_pattern(is') -> *)
-                (*           Ident_set.subset (Ident_set.of_enum (Ident_hashtbl.keys is')) *)
-                (*             (Ident_set.of_enum (Ident_hashtbl.keys is)) *)
-                (*       end *)
-                (*   | Value_function(Function_value(_)) -> false *)
-          in
-          let f_target = if successful_match then f1 else f2 in
-          evaluate env (Some x) @@ fresh_wire f_target x' x @ t            
+        (* TODO: The first pass of implementation is ignoring the dispatch
+                 table, because we need the type system to make it work and the
+                 type system doesn't exist yet. We're always failing to match,
+                 which is a good default because we're always failing to produce
+                 a proof (that's bad but not incorrect). We need to come back
+                 here and implement this right. *)
+        let successful_match = is_compatible (lookup env x') env p (fun value pattern -> false) in
+        let f_target = if successful_match then f1 else f2 in
+        evaluate env (Some x) @@ fresh_wire f_target x' x @ t            
 ;;
 
 let eval (Expr(cls)) =

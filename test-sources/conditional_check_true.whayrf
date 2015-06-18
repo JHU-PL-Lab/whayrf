@@ -1,10 +1,4 @@
-# EXPECT-STUCK
-#
-# TODO: This should be EXPECT-EVALUATE, instead of EXPECT-STUCK. Currently,
-#       we don't have the compatibility (pattern matching) rules implemented,
-#       and pattern matching always fails. When we have that working, this
-#       test is going to fail and we should revert the comment on the first
-#       line of this test.
+# EXPECT-EVALUATE
 re = {};
 e = {l = re};
 # Match {l = {}} with {l : {}}
