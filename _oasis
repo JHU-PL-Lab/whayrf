@@ -58,6 +58,16 @@ Library "whayrf-interpreter"
     whayrf-ast,
     whayrf-utils
 
+Library "whayrf-typechecker"
+  Path: src/whayrf-typechecker
+  Modules:
+    Whayrf_typechecker,
+    Whayrf_types
+  BuildDepends:
+    batteries,
+    whayrf-ast,
+    whayrf-utils
+
 # Library "whayrf-nested-ast"
 #   Path: src/whayrf-nested-ast
 #   Modules:
@@ -98,6 +108,7 @@ Executable "whayrf-toploop"
     whayrf-ast,
     whayrf-interpreter,
     whayrf-parser,
+    whayrf-typechecker,
     batteries
 
 # Executable "whayrf-nested-toploop"
@@ -117,6 +128,7 @@ Executable "test-whayrf"
   BuildDepends:
     whayrf-interpreter,
     whayrf-parser,
+    whayrf-typechecker,
     whayrf-utils,
     oUnit,
     batteries
