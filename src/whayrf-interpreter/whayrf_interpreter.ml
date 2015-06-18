@@ -61,15 +61,7 @@ and var_replace_value fn v =
   | Value_function(f) -> Value_function(var_replace_function_value fn f)
 
 and var_replace_record_value fn (Record_value r) =
-  Record_value(
-    r
-    |> Ident_hashtbl.enum
-    |> Enum.map (
-      fun (k, v) ->
-        (k, fn v)
-    )
-    |> Ident_hashtbl.of_enum
-  )
+  Record_value(Ident_map.map fn r)
 
 and var_replace_function_value fn (Function_value(x, e)) =
   Function_value(fn x, var_replace_expr fn e)
@@ -116,11 +108,11 @@ let rec is_compatible value env pattern dispatch_table =
     begin
       match value with
       | Value_record(Record_value(is)) ->
-        Ident_hashtbl.fold (
+        Ident_map.fold (
           fun label pattern' result ->
             result &&
-            Ident_hashtbl.mem is label &&
-            let value' = lookup env @@ Ident_hashtbl.find is label in
+            Ident_map.mem label is &&
+            let value' = lookup env @@ Ident_map.find label is in
             is_compatible value' env pattern' dispatch_table
         ) js true
       | Value_function(_) -> false
@@ -177,8 +169,8 @@ let rec evaluate env lastvar cls =
           begin
             match lookup env x' with
             | Value_record(Record_value(r)) as value_record ->
-              if Ident_hashtbl.mem r l then
-                let v = lookup env @@ Ident_hashtbl.find r l in
+              if Ident_map.mem l r then
+                let v = lookup env @@ Ident_map.find l r in
                 Environment.add env x v;
                 evaluate env (Some x) t
               else

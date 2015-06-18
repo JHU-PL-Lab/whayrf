@@ -89,9 +89,9 @@ record_element:
 
 record_value:
   | OPEN_BRACE CLOSE_BRACE
-      { Record_value(Ident_hashtbl.create 20) }
+      { Record_value(Ident_map.empty) }
   | OPEN_BRACE separated_nonempty_trailing_list(COMMA, record_element) CLOSE_BRACE
-      { Record_value(Ident_hashtbl.of_enum (Batteries.List.enum $2)) }
+      { Record_value(Ident_map.of_enum (Batteries.List.enum $2)) }
   ;
   
 function_value:
@@ -106,9 +106,9 @@ record_pattern_element:
 
 pattern:
   | OPEN_BRACE CLOSE_BRACE
-      { Record_pattern(Ident_hashtbl.create 20) }
+      { Record_pattern(Ident_map.empty) }
   | OPEN_BRACE separated_nonempty_trailing_list(COMMA, record_pattern_element) CLOSE_BRACE
-      { Record_pattern(Ident_hashtbl.of_enum (Batteries.List.enum $2)) }
+      { Record_pattern(Ident_map.of_enum (Batteries.List.enum $2)) }
   | KEYWORD_FUN pattern TILDE_ARROW OPEN_BRACE pattern CLOSE_BRACE
       { Function_pattern($2,$5) }
   | identifier
