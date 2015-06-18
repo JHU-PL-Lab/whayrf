@@ -31,6 +31,8 @@ end
 
 module Ident_set = Set.Make(Ident_order);;
 
+module Ident_map = Map.Make(Ident_order);;
+
 (** A freshening stack of identifiers for variables produced at runtime.  This
     tracks the invocation stack of these variables.  The first element in the
     list is the topmost element in the stack.  If this stack is absent, then
@@ -60,7 +62,7 @@ module Var_hashtbl = Hashtbl.Make(
 );;
 
 (** A type to express whayrf record values. *)
-type record_value = Record_value of var Ident_hashtbl.t
+type record_value = Record_value of var Ident_map.t
 
 (** A type to express whayrf function values. *)
 and function_value = Function_value of var * expr
@@ -86,7 +88,7 @@ and expr = Expr of clause list
 
 (** A type representing conditional patterns. *)
 and pattern =
-  | Record_pattern of pattern Ident_hashtbl.t
+  | Record_pattern of pattern Ident_map.t
   | Function_pattern of pattern * pattern
   | Pattern_variable_pattern of ident
   | Forall_pattern of ident * pattern

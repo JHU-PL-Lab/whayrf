@@ -24,7 +24,10 @@ let pretty_record_element (key, value) =
 ;;
 
 let pretty_record_value (Record_value(is)) =
-  concat_sep_delim "{" "}" ", " @@ Enum.map pretty_record_element @@ Ident_hashtbl.enum is
+  is
+  |> Ident_map.enum
+  |> Enum.map pretty_record_element
+  |> concat_sep_delim "{" "}" ", "
 ;;
 
 let rec pretty_function_value (Function_value(x,e)) =
@@ -58,7 +61,7 @@ and pretty_pattern p =
   match p with
     | Record_pattern(is) ->
         concat_sep_delim "{" "}" ", " @@ Enum.map pretty_record_pattern_element @@
-        Ident_hashtbl.enum is
+        Ident_map.enum is
     | Function_pattern(p1, p2) ->
       (pretty_pattern p1) ^ " ~> { " ^ (pretty_pattern p2) ^ " }"
     | Pattern_variable_pattern(i) ->
