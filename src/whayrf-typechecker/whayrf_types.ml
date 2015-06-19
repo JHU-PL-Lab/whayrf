@@ -49,8 +49,10 @@ sig
     | Record_type of type_variable Ident_map.t
     | Function_type_type of function_type
     | Unknown_type
+  and type_restriction =
+    | Type_Restriction of positive_pattern_set * negative_pattern_set
   and restricted_type =
-    | Restricted_type of ttype * positive_pattern_set * negative_pattern_set
+    | Restricted_type of ttype * type_restriction
 end
 ;;
 
