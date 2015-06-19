@@ -62,7 +62,8 @@ Library "whayrf-typechecker"
   Path: src/whayrf-typechecker
   Modules:
     Whayrf_typechecker,
-    Whayrf_types
+    Whayrf_types,
+    Whayrf_types_pretty
   BuildDepends:
     batteries,
     whayrf-ast,
