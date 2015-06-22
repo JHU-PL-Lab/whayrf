@@ -154,7 +154,7 @@ let close_by_application constraint_set =
   constraint_set
   |> Constraint_set.enum
   |> Enum.filter_map (
-    function tconstraint ->
+    fun tconstraint ->
       match tconstraint with
       | Lower_bound_constraint (
           Application_lower_bound (
@@ -167,7 +167,7 @@ let close_by_application constraint_set =
           constraint_set
           |> Constraint_set.enum
           |> Enum.filter_map (
-            function tconstraint ->
+            fun tconstraint ->
               match tconstraint with
               | Lower_bound_constraint (
                   Restricted_type_lower_bound (
@@ -191,7 +191,7 @@ let close_by_application constraint_set =
                     constraint_set
                     |> Constraint_set.enum
                     |> Enum.filter_map (
-                      function tconstraint ->
+                      fun tconstraint ->
                         match tconstraint with
                         | Lower_bound_constraint (
                             actual_parameter_lower_bound,
@@ -235,8 +235,105 @@ let close_by_application constraint_set =
 ;;
 
 let close_by_conditional_success constraint_set =
-  (* TODO: Not implemented yet. *)
-  Constraint_set.empty
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map (
+    fun tconstraint ->
+      match tconstraint with
+      | Lower_bound_constraint (
+          Conditional_lower_bound (
+            subject_type_variable,
+            pattern,
+            Function_type (
+              parameter_type_variable,
+              Constrained_type (
+                body_type_variable,
+                body_constraint_set
+              )
+            ),
+            _
+          ),
+          conditional_result_type_variable
+        ) ->
+        Some (
+          constraint_set
+          |> Constraint_set.enum
+          |> Enum.filter_map (
+            fun tconstraint ->
+              match tconstraint with
+              | Lower_bound_constraint (
+                  Restricted_type_lower_bound (
+                    Restricted_type (
+                      ttype,
+                      Type_restriction (
+                        Positive_pattern_set (positive_pattern_set),
+                        Negative_pattern_set (negative_pattern_set)
+                      )
+                    ) as restricted_type
+                  ),
+                  other_subject_type_variable
+                ) ->
+                if (
+                  (subject_type_variable = other_subject_type_variable) &&
+                  (
+                    is_compatible
+                      restricted_type
+                      constraint_set
+                      (
+                        Type_restriction
+                          (
+                            Positive_pattern_set (
+                              Pattern_set.add
+                                pattern
+                                Pattern_set.empty
+                            ),
+                            Negative_pattern_set Pattern_set.empty
+                          )
+                      )
+                  )
+                ) then
+                  Some (
+                    Enum.append
+                      (Constraint_set.enum body_constraint_set)
+                      (
+                        List.enum [
+                          Lower_bound_constraint (
+                            Restricted_type_lower_bound (
+                              Restricted_type (
+                                ttype,
+                                Type_restriction (
+                                  Positive_pattern_set (
+                                    Pattern_set.add
+                                      pattern
+                                      positive_pattern_set
+                                  ),
+                                  Negative_pattern_set (
+                                    negative_pattern_set
+                                  )
+                                )
+                              )
+                            ),
+                            parameter_type_variable
+                          );
+                          Lower_bound_constraint (
+                            Type_variable_lower_bound (
+                              body_type_variable
+                            ),
+                            conditional_result_type_variable
+                          )
+                        ]
+                      )
+                  )
+                else
+                  None
+              | _ -> None
+          )
+          |> Enum.concat
+        )
+      | _ -> None
+  )
+  |> Enum.concat
+  |> Constraint_set.of_enum
 ;;
 
 let close_by_conditional_failure constraint_set =
