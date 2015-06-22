@@ -439,8 +439,103 @@ let close_by_conditional_failure constraint_set =
 ;;
 
 let close_by_unknown_application constraint_set =
-  (* TODO: Not implemented yet. *)
-  Constraint_set.empty
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map (
+    fun tconstraint ->
+      match tconstraint with
+      | Lower_bound_constraint (
+          Application_lower_bound (
+            function_type_variable,
+            actual_parameter_type_variable
+          ),
+          function_return_type_variable
+        ) ->
+        Some (
+          constraint_set
+          |> Constraint_set.enum
+          |> Enum.filter_map (
+            fun tconstraint ->
+              match tconstraint with
+              | Lower_bound_constraint (
+                  Restricted_type_lower_bound (
+                    Restricted_type (
+                      Unknown_type,
+                      Type_restriction (
+                        Positive_pattern_set (positive_patterns),
+                        Negative_pattern_set (negative_patterns)
+                      )
+                    )
+                  ),
+                  other_function_type_variable
+                ) ->
+                if (function_type_variable = other_function_type_variable) then
+                  Some (
+                    constraint_set
+                    |> Constraint_set.enum
+                    |> Enum.filter_map (
+                      fun tconstraint ->
+                        match tconstraint with
+                        | Lower_bound_constraint (
+                            Restricted_type_lower_bound (restricted_type),
+                            other_actual_parameter_type_variable
+                          ) ->
+                          if (actual_parameter_type_variable = other_actual_parameter_type_variable) then
+                            Some (
+                              Lower_bound_constraint (
+                                Restricted_type_lower_bound (
+                                  Restricted_type (
+                                    Unknown_type,
+                                    Type_restriction (
+                                      Positive_pattern_set (
+                                        Pattern_set.filter_map (
+                                          fun pattern ->
+                                            match pattern with
+                                            | Function_pattern (parameter_pattern, body_pattern) ->
+                                              if (
+                                                is_compatible
+                                                  restricted_type
+                                                  constraint_set
+                                                  (
+                                                    Type_restriction (
+                                                      Positive_pattern_set (
+                                                        Pattern_set.add
+                                                          parameter_pattern
+                                                          Pattern_set.empty
+                                                      ),
+                                                      Negative_pattern_set (
+                                                        Pattern_set.empty
+                                                      )
+                                                    )
+                                                  )
+                                              ) then
+                                                Some (body_pattern)
+                                              else
+                                                None
+                                            | _ -> None
+                                        ) positive_patterns),
+                                      Negative_pattern_set Pattern_set.empty
+                                    )
+                                  )
+                                ) ,
+                                  function_return_type_variable
+                                )
+                            )
+                          else
+                            None
+                        | _ -> None
+                    )
+                  )
+                else
+                  None
+              | _ -> None
+          )
+          |> Enum.concat
+        )
+      | _ -> None
+  )
+  |> Enum.concat
+  |> Constraint_set.of_enum
 ;;
 
 let close_by_unknown_projection constraint_set =
