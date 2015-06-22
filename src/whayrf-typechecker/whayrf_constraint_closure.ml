@@ -539,8 +539,66 @@ let close_by_unknown_application constraint_set =
 ;;
 
 let close_by_unknown_projection constraint_set =
-  (* TODO: Not implemented yet. *)
-  Constraint_set.empty
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Projection_lower_bound (
+              record_type_variable,
+              label
+            ),
+            projected_type_variable
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint (
+                      Restricted_type_lower_bound (
+                        Restricted_type (
+                          Unknown_type,
+                          Type_restriction (
+                            Positive_pattern_set (positive_patterns),
+                            _
+                          )
+                        )
+                      ),
+                      other_record_type_variable
+                    ) ->
+                    if record_type_variable = other_record_type_variable then
+                      let projected_patterns = project_pattern_set label positive_patterns in
+                      if not (Pattern_set.is_empty projected_patterns) then
+                        Some (
+                          Lower_bound_constraint (
+                            Restricted_type_lower_bound (
+                              Restricted_type (
+                                Unknown_type,
+                                Type_restriction (
+                                  Positive_pattern_set (projected_patterns),
+                                  Negative_pattern_set (Pattern_set.empty)
+                                )
+                              )
+                            ),
+                            projected_type_variable
+                          )
+                        )
+                      else
+                        None
+                    else
+                      None
+                  | _ -> None
+              )
+          )
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Constraint_set.of_enum
 ;;
 
 let close_by_function_closure constraint_set =
