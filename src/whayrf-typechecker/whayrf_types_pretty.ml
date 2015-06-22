@@ -67,7 +67,7 @@ and pretty_ttype ttype =
     "<unknown>"
 
 and pretty_type_restriction (
-    Type_Restriction(
+    Type_restriction(
       positive_pattern_set,
       negative_pattern_set)
   ) =
