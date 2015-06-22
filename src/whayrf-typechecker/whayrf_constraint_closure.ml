@@ -151,8 +151,87 @@ let close_by_projection constraint_set =
 ;;
 
 let close_by_application constraint_set =
-  (* TODO: Not implemented yet. *)
-  Constraint_set.empty
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map (
+    function tconstraint ->
+      match tconstraint with
+      | Lower_bound_constraint (
+          Application_lower_bound (
+            function_type_variable,
+            actual_parameter_type_variable
+          ),
+          function_return_type_variable
+        ) ->
+        Some (
+          constraint_set
+          |> Constraint_set.enum
+          |> Enum.filter_map (
+            function tconstraint ->
+              match tconstraint with
+              | Lower_bound_constraint (
+                  Restricted_type_lower_bound (
+                    Restricted_type (
+                      Function_type_type (
+                        Function_type (
+                          formal_parameter_type_variable,
+                          Constrained_type (
+                            body_type_variable,
+                            body_constraint_set
+                          )
+                        )
+                      ),
+                      _
+                    )
+                  ),
+                  other_function_type_variable
+                ) ->
+                if (function_type_variable = other_function_type_variable) then
+                  Some (
+                    constraint_set
+                    |> Constraint_set.enum
+                    |> Enum.filter_map (
+                      function tconstraint ->
+                        match tconstraint with
+                        | Lower_bound_constraint (
+                            actual_parameter_lower_bound,
+                            other_actual_parameter_type_variable
+                          ) ->
+                          if (actual_parameter_type_variable = other_actual_parameter_type_variable) then
+                            Some (
+                              Enum.append
+                                (Constraint_set.enum body_constraint_set)
+                                (
+                                  List.enum [
+                                    Lower_bound_constraint (
+                                        actual_parameter_lower_bound,
+                                        formal_parameter_type_variable
+                                    );
+                                    Lower_bound_constraint (
+                                      Type_variable_lower_bound (
+                                        body_type_variable
+                                      ),
+                                      function_return_type_variable
+                                    )
+                                  ]
+                                )
+                            )
+                          else
+                            None
+                        | _ -> None
+                    )
+                    |> Enum.concat
+                  )
+                else
+                  None
+              | _ -> None
+          )
+          |> Enum.concat
+        )
+      | _ -> None
+  )
+  |> Enum.concat
+  |> Constraint_set.of_enum
 ;;
 
 let close_by_conditional_success constraint_set =
