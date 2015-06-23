@@ -3,9 +3,40 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_types;;
 
-let rec is_compatible_restricted_type restricted_type constraint_set type_restriction =
-  (* TODO: Not implemented yet. *)
-  false
+let rec is_compatible_restricted_type
+    (
+      Restricted_type (
+        ttype,
+        Type_restriction (
+          Positive_pattern_set (restricted_type_positive_patterns),
+          Negative_pattern_set (restricted_type_negative_patterns)
+        )
+      )
+    )
+    constraint_set
+        (
+      Type_restriction (
+        Positive_pattern_set (positive_patterns),
+        Negative_pattern_set (negative_patterns)
+      )
+    ) =
+  is_compatible_ttype
+    ttype
+    constraint_set
+    (
+      Type_restriction (
+        Positive_pattern_set (
+          Pattern_set.union
+            restricted_type_positive_patterns
+            positive_patterns
+        ),
+        Negative_pattern_set (
+          Pattern_set.union
+            restricted_type_negative_patterns
+            negative_patterns
+        )
+      )
+    )
 
 and is_compatible_type_variable type_variable constraint_set type_restriction =
   constraint_set
