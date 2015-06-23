@@ -76,7 +76,7 @@ let project_pattern_set label pattern_set =
           Some (Ident_map.find label pattern_elements)
         else
           None
-      | _ -> None
+      | _ -> failwith "Tried to project label out of a non-record pattern."
   )
   |> Pattern_set.of_enum
 ;;

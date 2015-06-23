@@ -74,8 +74,58 @@ and is_compatible_ttype
      (negative_patterns = Pattern_set.empty) then
     true
   else
-    (* TODO: Not implemented yet. *)
-    false
+    match ttype with
+    | Record_type (record_elements) ->
+      let negative_patterns =
+        negative_patterns
+        |> Pattern_set.enum
+        |> Enum.filter
+          (
+            fun pattern ->
+              match pattern with
+              | Record_pattern (pattern_elements) ->
+                Ident_set.subset
+                  (Ident_set.of_enum (Ident_map.keys pattern_elements))
+                  (Ident_set.of_enum (Ident_map.keys record_elements))
+              | _ -> true
+          )
+        |> Pattern_set.of_enum
+      in
+      (* positive_patterns *)
+      (* |> Pattern_set.enum *)
+      (* |> Enum.for_all *)
+      (*   ( *)
+      (*     fun pattern -> *)
+      (*       match pattern with *)
+      (*       | Record_pattern (pattern_elements) -> *)
+      (*         ( *)
+      (*           Ident_set.subset *)
+      (*             (Ident_set.of_enum (Ident_map.keys pattern_elements)) *)
+      (*             (Ident_set.of_enum (Ident_map.keys record_elements)) *)
+      (*         ) && *)
+      (*         ( *)
+      (*           record_elements *)
+      (*           |> Ident_map.enum *)
+      (*           |> Enum.for_all *)
+      (*             ( *)
+      (*               fun (label, type_variable) -> *)
+      (*                 is_compatible_ttype *)
+      (*                   type_variable *)
+      (*                   constraint_set *)
+      (*                   ( *)
+      (*                     Type_restriction ( *)
+      (*                       (Positive_pattern_set (project_pattern_set label pattern_elements)), *)
+      (*                       (Negative_pattern_set ()) *)
+      (*                     ) *)
+      (*                   ) *)
+      (*             ) *)
+      (*         ) *)
+      (*       | _ -> false *)
+      (*   ) *)
+      false
+    | _ ->
+      (* TODO: Not implemented yet. *)
+      false
 ;;
 
 let close_by_transitivity constraint_set =
