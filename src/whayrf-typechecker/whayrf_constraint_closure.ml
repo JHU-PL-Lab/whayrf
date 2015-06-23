@@ -3,9 +3,48 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_types;;
 
-let is_compatible restricted_type constraint_set type_restriction =
+let rec is_compatible_restricted_type restricted_type constraint_set type_restriction =
   (* TODO: Not implemented yet. *)
   false
+
+and is_compatible_type_variable type_variable constraint_set type_restriction =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Restricted_type_lower_bound (restricted_type),
+            this_type_variable
+          ) ->
+          if type_variable = this_type_variable then
+            Some (restricted_type)
+          else
+            None
+        | _ -> None
+    )
+  |> Enum.exists
+    (
+      fun restricted_type ->
+        is_compatible_restricted_type restricted_type constraint_set type_restriction
+    )
+
+and is_compatible_ttype
+    ttype
+    constraint_set
+    (
+      Type_restriction (
+        Positive_pattern_set (positive_patterns),
+        Negative_pattern_set (negative_patterns)
+      )
+    ) =
+  if (positive_patterns = Pattern_set.empty) &&
+     (negative_patterns = Pattern_set.empty) then
+    true
+  else
+    (* TODO: Not implemented yet. *)
+    false
 ;;
 
 let close_by_transitivity constraint_set =
@@ -108,7 +147,7 @@ let close_by_projection constraint_set =
                                 ) ->
                                 if (
                                   (label_type_variable = other_label_type_variable) &&
-                                  (is_compatible
+                                  (is_compatible_restricted_type
                                      restricted_type
                                      constraint_set
                                      (
@@ -276,7 +315,7 @@ let close_by_conditional_success constraint_set =
                 if (
                   (subject_type_variable = other_subject_type_variable) &&
                   (
-                    is_compatible
+                    is_compatible_restricted_type
                       restricted_type
                       constraint_set
                       (
@@ -378,7 +417,7 @@ let close_by_conditional_failure constraint_set =
                 if (
                   (subject_type_variable = other_subject_type_variable) &&
                   (
-                    is_compatible
+                    is_compatible_restricted_type
                       restricted_type
                       constraint_set
                       (
@@ -493,7 +532,7 @@ let close_by_unknown_application constraint_set =
                                             match pattern with
                                             | Function_pattern (parameter_pattern, body_pattern) ->
                                               if (
-                                                is_compatible
+                                                is_compatible_restricted_type
                                                   restricted_type
                                                   constraint_set
                                                   (
