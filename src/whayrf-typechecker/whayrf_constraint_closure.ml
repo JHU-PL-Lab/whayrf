@@ -123,6 +123,10 @@ and is_compatible_ttype
       (*       | _ -> false *)
       (*   ) *)
       false
+
+    | Unknown_type ->
+      not (Pattern_set.subset positive_patterns negative_patterns)
+
     | _ ->
       (* TODO: Not implemented yet. *)
       false
