@@ -2,6 +2,7 @@ open Batteries;;
 
 open Whayrf_ast;;
 open Whayrf_types;;
+open Whayrf_utils;;
 
 let project_pattern_set label pattern_set =
   pattern_set
@@ -14,7 +15,7 @@ let project_pattern_set label pattern_set =
           Some (Ident_map.find label pattern_elements)
         else
           None
-      | _ -> failwith "Tried to project label out of a non-record pattern."
+      | _ -> raise @@ Invariant_failure "Tried to project label out of a non-record pattern."
   )
   |> Pattern_set.of_enum
 ;;
@@ -191,42 +192,79 @@ and is_compatible_ttype
                 Ident_set.subset
                   (Ident_set.of_enum (Ident_map.keys pattern_elements))
                   (Ident_set.of_enum (Ident_map.keys record_elements))
-              | _ -> true
+              | _ -> false
           )
         |> Pattern_set.of_enum
       in
-      (* positive_patterns *)
-      (* |> Pattern_set.enum *)
-      (* |> Enum.for_all *)
-      (*   ( *)
-      (*     fun pattern -> *)
-      (*       match pattern with *)
-      (*       | Record_pattern (pattern_elements) -> *)
-      (*         ( *)
-      (*           Ident_set.subset *)
-      (*             (Ident_set.of_enum (Ident_map.keys pattern_elements)) *)
-      (*             (Ident_set.of_enum (Ident_map.keys record_elements)) *)
-      (*         ) && *)
-      (*         ( *)
-      (*           record_elements *)
-      (*           |> Ident_map.enum *)
-      (*           |> Enum.for_all *)
-      (*             ( *)
-      (*               fun (label, type_variable) -> *)
-      (*                 is_compatible_ttype *)
-      (*                   type_variable *)
-      (*                   constraint_set *)
-      (*                   ( *)
-      (*                     Type_restriction ( *)
-      (*                       (Positive_pattern_set (project_pattern_set label pattern_elements)), *)
-      (*                       (Negative_pattern_set ()) *)
-      (*                     ) *)
-      (*                   ) *)
-      (*             ) *)
-      (*         ) *)
-      (*       | _ -> false *)
-      (*   ) *)
-      false
+      let negative_pattern_cases =
+        negative_patterns
+        |> Pattern_set.enum
+        |> Enum.fold
+          (
+            fun partial_negative_pattern_cases pattern ->
+              match pattern with
+              | Record_pattern (pattern_elements) ->
+                partial_negative_pattern_cases
+                |> Enum.map
+                  (
+                    fun partial_negative_pattern_case ->
+                      pattern_elements
+                      |> Ident_map.enum
+                      |> Enum.map
+                        (
+                          fun (label, inner_pattern) ->
+                            partial_negative_pattern_case
+                            |> Pattern_set.add (
+                              Record_pattern (Ident_map.add label inner_pattern Ident_map.empty)
+                            )
+                        )
+                  )
+                |> Enum.concat
+              | _ -> raise @@ Invariant_failure "It's invalid to consider pattern that are not records here."
+          )
+          (Enum.singleton Pattern_set.empty)
+      in
+      let are_positive_patterns_valid =
+        positive_patterns
+        |> Pattern_set.enum
+        |> Enum.for_all
+          (
+            fun pattern ->
+              match pattern with
+              | Record_pattern (pattern_elements) ->
+                (
+                  Ident_set.subset
+                    (Ident_set.of_enum (Ident_map.keys pattern_elements))
+                    (Ident_set.of_enum (Ident_map.keys record_elements))
+                )
+              | _ -> false
+          )
+      in
+      are_positive_patterns_valid &&
+      negative_pattern_cases
+      |> Enum.exists
+        (
+          fun negative_pattern_case ->
+            record_elements
+            |> Ident_map.enum
+            |> Enum.for_all
+              (
+                fun (label, type_variable) ->
+                  is_compatible_type_variable
+                    type_variable
+                    constraint_set
+                    (
+                      Type_restriction (
+                        Positive_pattern_set (
+                          project_pattern_set label positive_patterns
+                        ),
+                        Negative_pattern_set (
+                          project_pattern_set label negative_pattern_case
+                        )
+                      )
+                    )
+              )
+        )
 
     | Unknown_type ->
       not (
