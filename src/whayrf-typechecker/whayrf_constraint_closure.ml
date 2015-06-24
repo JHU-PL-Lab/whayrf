@@ -3,6 +3,86 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_types;;
 
+let project_pattern_set label pattern_set =
+  pattern_set
+  |> Pattern_set.enum
+  |> Enum.filter_map (
+    fun pattern ->
+      match pattern with
+      | Record_pattern (pattern_elements) ->
+        if Ident_map.mem label pattern_elements then
+          Some (Ident_map.find label pattern_elements)
+        else
+          None
+      | _ -> failwith "Tried to project label out of a non-record pattern."
+  )
+  |> Pattern_set.of_enum
+;;
+
+let rec is_subsumption_pattern_set
+    (Positive_pattern_set (positive_patterns))
+    (Negative_pattern_set (negative_patterns))
+  =
+  positive_patterns
+  |> Pattern_set.enum
+  |> Enum.exists
+    (
+      fun positive_pattern ->
+        negative_patterns
+        |> Pattern_set.enum
+        |> Enum.exists
+          (
+            fun negative_pattern ->
+              is_subsumption_pattern positive_pattern negative_pattern
+          )
+    )
+
+and is_subsumption_pattern pattern_1 pattern_2 =
+  match (pattern_1, pattern_2) with
+  | (
+    Record_pattern (record_patterns_1),
+    Record_pattern (record_patterns_2)
+  ) ->
+    record_patterns_2
+    |> Ident_map.enum
+    |> Enum.for_all
+      (
+        fun (label_2, pattern_2) ->
+          record_patterns_1
+          |> Ident_map.enum
+          |> Enum.exists
+            (
+              fun (label_1, pattern_1) ->
+                (label_1 = label_2) &&
+                (is_subsumption_pattern pattern_1 pattern_2)
+            )
+      )
+  | (
+    Function_pattern (function_pattern_1, parameter_pattern_1),
+    Function_pattern (function_pattern_2, parameter_pattern_2)
+  ) ->
+    (is_subsumption_pattern parameter_pattern_1 parameter_pattern_2) &&
+    (is_subsumption_pattern function_pattern_2 function_pattern_1)
+  | (
+    Pattern_variable_pattern _,
+    Pattern_variable_pattern _
+  ) ->
+    pattern_1 = pattern_2
+  | (
+    Forall_pattern (ident, sub_pattern_1),
+    _
+  ) ->
+    (* TODO: Not implemented yet. *)
+    false
+  | (
+    _,
+    Forall_pattern (ident, sub_pattern_2)
+  ) ->
+    (* TODO: Not implemented yet. *)
+    false
+  | _ -> false
+;;
+
 let rec is_compatible_restricted_type
     (
       Restricted_type (
@@ -74,6 +154,30 @@ and is_compatible_ttype
      (negative_patterns = Pattern_set.empty) then
     true
   else
+    let positive_patterns =
+      positive_patterns
+      |> Pattern_set.enum
+      |> Enum.filter (
+        fun pattern ->
+          match pattern with
+          | Pattern_variable_pattern (_) ->
+            Pattern_set.mem pattern negative_patterns
+          | _ -> true
+      )
+      |> Pattern_set.of_enum
+    in
+    let negative_patterns =
+      negative_patterns
+      |> Pattern_set.enum
+      |> Enum.filter (
+        fun pattern ->
+          match pattern with
+          | Pattern_variable_pattern (_) ->
+            Pattern_set.mem pattern positive_patterns
+          | _ -> true
+      )
+      |> Pattern_set.of_enum
+    in
     match ttype with
     | Record_type (record_elements) ->
       let negative_patterns =
@@ -125,7 +229,11 @@ and is_compatible_ttype
       false
 
     | Unknown_type ->
-      not (Pattern_set.subset positive_patterns negative_patterns)
+      not (
+        is_subsumption_pattern_set
+          (Positive_pattern_set(positive_patterns))
+          (Negative_pattern_set(negative_patterns))
+      )
 
     | _ ->
       (* TODO: Not implemented yet. *)

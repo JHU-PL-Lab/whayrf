@@ -65,20 +65,4 @@ struct
 end
 and Constraint_set : (Set.S with type elt = Types.tconstraint) = Set.Make(Constraint_order);;
 
-let project_pattern_set label pattern_set =
-  pattern_set
-  |> Pattern_set.enum
-  |> Enum.filter_map (
-    fun pattern ->
-      match pattern with
-      | Record_pattern (pattern_elements) ->
-        if Ident_map.mem label pattern_elements then
-          Some (Ident_map.find label pattern_elements)
-        else
-          None
-      | _ -> failwith "Tried to project label out of a non-record pattern."
-  )
-  |> Pattern_set.of_enum
-;;
-
 include Types;;
