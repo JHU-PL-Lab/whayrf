@@ -7,6 +7,8 @@
   
     - [EXPECT-EVALUATE] (which requires that the code evaluates to completion)
     - [EXPECT-STUCK] (which requires that the code gets stuck)
+    - [EXPECT-TYPECHECK] (which requires that the code typechecks)
+    - [EXPECT-TYPEFAIL] (which requires that the code fails to typecheck)
 *)
 
 open Batteries;;
@@ -15,6 +17,7 @@ open OUnit2;;
 open Whayrf_ast_wellformedness;;
 open Whayrf_interpreter;;
 open Whayrf_parser;;
+open Whayrf_typechecker;;
 open Whayrf_utils;;
 
 exception File_test_creation_failure of string;;
@@ -22,47 +25,64 @@ exception File_test_creation_failure of string;;
 type test_expectation =
   | Expect_evaluate
   | Expect_stuck
+  | Expect_typecheck
+  | Expect_typefail
 ;;
 
 let parse_expectation str =
   match str with
     | "EXPECT-EVALUATE" -> Some(Expect_evaluate)
     | "EXPECT-STUCK" -> Some(Expect_stuck)
+    | "EXPECT-TYPECHECK" -> Some(Expect_typecheck)
+    | "EXPECT-TYPEFAIL" -> Some(Expect_typefail)
     | _ -> None
 ;;
 
-let make_test filename expectation =
-  let test_name_expectation = match expectation with
-                                | Expect_evaluate ->
-                                    "(should evaluate)"
-                                | Expect_stuck ->
-                                    "(should get stuck)"
-  in
-  let test_name = filename ^ ": " ^ test_name_expectation in
-  (* Create the test in a thunk. *)
-  test_name >::
+let make_test filename expectations =
+  (* Begin by parsing the file. *)
+  let expr = File.with_file_in filename Whayrf_parser.parse_whayrf_program in
+  (* Verify that it is well-formed. *)
+  check_wellformed_expr expr;
+  (* Next, typecheck it. *)
+  let typecheck_result = typecheck expr in
+  let make_single_test expectation =
+    let test_name_expectation = match expectation with
+      | Expect_evaluate ->
+        "(should evaluate)"
+      | Expect_stuck ->
+        "(should get stuck)"
+      | Expect_typecheck ->
+        "(should get typecheck)"
+      | Expect_typefail ->
+        "(should fail to typecheck)"
+    in
+    let test_name = filename ^ ": " ^ test_name_expectation in
+    (* Create the test in a thunk. *)
+    test_name >::
     function _ ->
-      (* Begin by parsing the file. *)
-      let expr = File.with_file_in filename Whayrf_parser.parse_whayrf_program in
-      (* Verify that it is well-formed. *)
-      check_wellformed_expr expr;
       (* Now, based on our expectation, do the right thing. *)
       match expectation with
-        | Expect_evaluate ->
-            begin
-              try
-                ignore @@ eval expr
-              with Evaluation_failure(failure) ->
-                assert_failure @@ "Evaluation became stuck: " ^ failure
-            end
-        | Expect_stuck ->
-            begin
-              try
-                ignore (eval expr);
-                assert_failure ("Evaluation completed")                
-              with Evaluation_failure(failure) ->
-                ()
-            end
+      | Expect_evaluate ->
+        begin
+          try
+            ignore @@ eval expr
+          with Evaluation_failure(failure) ->
+            assert_failure @@ "Evaluation became stuck: " ^ failure
+        end
+      | Expect_stuck ->
+        begin
+          try
+            ignore (eval expr);
+            assert_failure ("Evaluation completed")                
+          with Evaluation_failure(failure) ->
+            ()
+        end
+      | Expect_typecheck ->
+        assert_bool "Typechecking failed." typecheck_result
+      | Expect_typefail ->
+        assert_bool "Typechecking succeeded." @@ not typecheck_result
+  in
+  List.map make_single_test expectations
 ;;
 
 let make_test_from filename =
@@ -81,17 +101,14 @@ let make_test_from filename =
       |> List.of_enum
   in
   match expectations with
-    | [expectation] ->
-        make_test filename expectation
     | [] ->
         raise (File_test_creation_failure(
           "Could not create test from file " ^ filename ^
           ": no expectation comment found."))
     | _ ->
-        raise (File_test_creation_failure(
-          "Could not create test from file " ^ filename ^
-          ": multiple expectation comments found."))
-          
+      List.enum @@ make_test filename expectations
+;;
+
 let make_all_tests pathname =
   if Sys.file_exists pathname && Sys.is_directory pathname
     then
@@ -100,6 +117,7 @@ let make_all_tests pathname =
         |> Enum.filter (fun f -> not @@ Sys.is_directory f)
         |> Enum.filter (fun f -> String.ends_with f ".whayrf")
         |> Enum.map make_test_from
+        |> Enum.concat
         |> List.of_enum
     else
       raise (File_test_creation_failure(
