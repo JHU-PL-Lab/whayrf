@@ -1,0 +1,3 @@
+# EXPECT-TYPEFAIL
+f = fun a -> { r = {} };
+b = f.l;
