@@ -357,6 +357,46 @@ let is_inconsistent constraint_set =
                         | _ -> true
                       )
 
+                    | (
+                      Lower_bound_constraint (
+                        Projection_lower_bound (record_type_variable, label),
+                        _
+                      ),
+                      Lower_bound_constraint (
+                        Restricted_type_lower_bound (
+                          Restricted_type (
+                            ttype,
+                            Type_restriction (
+                              Positive_pattern_set (positive_patterns),
+                              _
+                            )
+                          )
+                        ),
+                        other_record_type_variable
+                      ),
+                      _
+                    ) ->
+                      (record_type_variable = other_record_type_variable) &&
+                      (not
+                         (
+                           match ttype with
+                           | Record_type (record_elements) ->
+                             Ident_map.mem label record_elements
+                           | Unknown_type ->
+                             positive_patterns
+                             |> Pattern_set.enum
+                             |> Enum.exists
+                               (
+                                 fun pattern ->
+                                   match pattern with
+                                   | Record_pattern (pattern_elements) ->
+                                     Ident_map.mem label pattern_elements
+                                   | _ -> false
+                               )
+                           | _ -> false
+                         )
+                      )
+
                     | _ -> false
                 )
           )
