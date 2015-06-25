@@ -1,4 +1,5 @@
 # EXPECT-EVALUATE
+# EXPECT-TYPECHECK
 re = {};
 e = {l = re};
 # Match {l = {}} with {l : {}}

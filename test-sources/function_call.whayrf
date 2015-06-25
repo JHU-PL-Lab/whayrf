@@ -1,4 +1,5 @@
 # EXPECT-EVALUATE
+# EXPECT-TYPECHECK
 x = {};
 f = fun a -> { r = {} };
 z = f x
