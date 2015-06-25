@@ -20,6 +20,62 @@ let project_pattern_set label pattern_set =
   |> Pattern_set.of_enum
 ;;
 
+let is_inconsistent constraint_set =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.exists
+    (
+      fun tconstraint_1 ->
+        constraint_set
+        |> Constraint_set.enum
+        |> Enum.exists
+          (
+            fun tconstraint_2 ->
+              constraint_set
+              |> Constraint_set.enum
+              |> Enum.exists
+                (
+                  fun tconstraint_3 ->
+                    (tconstraint_1 <> tconstraint_2) &&
+                    (tconstraint_2 <> tconstraint_3) &&
+                    match (tconstraint_1, tconstraint_2, tconstraint_3) with
+                    | (
+                      Lower_bound_constraint (
+                        Application_lower_bound (function_type_variable, parameter_type_variable),
+                        return_type_variable
+                      ),
+                      Lower_bound_constraint (
+                        Restricted_type_lower_bound (
+                          Restricted_type (
+                            function_type_type,
+                            _
+                          )
+                        ),
+                        other_function_type_variable
+                      ),
+                      Lower_bound_constraint (
+                        _,
+                        other_parameter_type_variable
+                      )
+                    ) ->
+                      (function_type_variable = other_function_type_variable) &&
+                      (parameter_type_variable = other_parameter_type_variable) &&
+                      (
+                        match function_type_type with
+                        | Function_type_type _ ->
+                          true
+                        | _ -> false
+                      )
+                    | _ -> false
+                )
+          )
+    )
+;;
+
+let is_consistent constraint_set =
+  not (is_inconsistent constraint_set)
+;;
+
 let rec is_subsumption_pattern_set
     (Positive_pattern_set (positive_patterns))
     (Negative_pattern_set (negative_patterns))
