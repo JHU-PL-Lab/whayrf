@@ -20,62 +20,6 @@ let project_pattern_set label pattern_set =
   |> Pattern_set.of_enum
 ;;
 
-let is_inconsistent constraint_set =
-  constraint_set
-  |> Constraint_set.enum
-  |> Enum.exists
-    (
-      fun tconstraint_1 ->
-        constraint_set
-        |> Constraint_set.enum
-        |> Enum.exists
-          (
-            fun tconstraint_2 ->
-              constraint_set
-              |> Constraint_set.enum
-              |> Enum.exists
-                (
-                  fun tconstraint_3 ->
-                    (tconstraint_1 <> tconstraint_2) &&
-                    (tconstraint_2 <> tconstraint_3) &&
-                    match (tconstraint_1, tconstraint_2, tconstraint_3) with
-                    | (
-                      Lower_bound_constraint (
-                        Application_lower_bound (function_type_variable, parameter_type_variable),
-                        return_type_variable
-                      ),
-                      Lower_bound_constraint (
-                        Restricted_type_lower_bound (
-                          Restricted_type (
-                            function_type_type,
-                            _
-                          )
-                        ),
-                        other_function_type_variable
-                      ),
-                      Lower_bound_constraint (
-                        _,
-                        other_parameter_type_variable
-                      )
-                    ) ->
-                      (function_type_variable = other_function_type_variable) &&
-                      (parameter_type_variable = other_parameter_type_variable) &&
-                      (
-                        match function_type_type with
-                        | Function_type_type _ ->
-                          true
-                        | _ -> false
-                      )
-                    | _ -> false
-                )
-          )
-    )
-;;
-
-let is_consistent constraint_set =
-  not (is_inconsistent constraint_set)
-;;
-
 let rec is_subsumption_pattern_set
     (Positive_pattern_set (positive_patterns))
     (Negative_pattern_set (negative_patterns))
@@ -332,6 +276,95 @@ and is_compatible_ttype
     | _ ->
       (* TODO: Not implemented yet. *)
       false
+;;
+
+let is_inconsistent constraint_set =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.exists
+    (
+      fun tconstraint_1 ->
+        constraint_set
+        |> Constraint_set.enum
+        |> Enum.exists
+          (
+            fun tconstraint_2 ->
+              constraint_set
+              |> Constraint_set.enum
+              |> Enum.exists
+                (
+                  fun tconstraint_3 ->
+                    (tconstraint_1 <> tconstraint_2) &&
+                    (tconstraint_2 <> tconstraint_3) &&
+                    match (tconstraint_1, tconstraint_2, tconstraint_3) with
+                    | (
+                      Lower_bound_constraint (
+                        Application_lower_bound (function_type_variable, parameter_type_variable),
+                        _
+                      ),
+                      Lower_bound_constraint (
+                        Restricted_type_lower_bound (
+                          Restricted_type (
+                            function_ttype,
+                            Type_restriction (
+                              Positive_pattern_set (positive_patterns),
+                              _
+                            )
+                          )
+                        ),
+                        other_function_type_variable
+                      ),
+                      Lower_bound_constraint (
+                        Restricted_type_lower_bound (
+                          parameter_restricted_type
+                        ),
+                        other_parameter_type_variable
+                      )
+                    ) ->
+                      (function_type_variable = other_function_type_variable) &&
+                      (parameter_type_variable = other_parameter_type_variable) &&
+                      (
+                        match function_ttype with
+                        | Function_type_type _ ->
+                          false
+                        | Unknown_type ->
+                          not (
+                            positive_patterns
+                            |> Pattern_set.enum
+                            |> Enum.exists
+                              (
+                                fun (pattern) ->
+                                  match pattern with
+                                  | Function_pattern (parameter_pattern, _) ->
+                                    is_compatible_restricted_type
+                                      parameter_restricted_type
+                                      constraint_set
+                                      (
+                                        Type_restriction (
+                                          Positive_pattern_set (
+                                            Pattern_set.add
+                                              parameter_pattern
+                                              Pattern_set.empty
+                                          ),
+                                          Negative_pattern_set (
+                                            Pattern_set.empty
+                                          )
+                                        )
+                                      )
+                                  | _ -> false
+                              )
+                          )
+                        | _ -> true
+                      )
+
+                    | _ -> false
+                )
+          )
+    )
+;;
+
+let is_consistent constraint_set =
+  not (is_inconsistent constraint_set)
 ;;
 
 let close_by_transitivity constraint_set =
