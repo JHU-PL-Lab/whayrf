@@ -3,9 +3,9 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_types;;
 
-let rec align (Expr(clauses)) =
+let rec initial_align_expr (Expr(clauses)) =
   clauses
-  |> List.map align_clause
+  |> List.map initial_align_clause
   |> List.reduce (
     fun (Constrained_type (_, constraint_set_1))
       (Constrained_type (type_variable_2, constraint_set_2)) ->
@@ -14,7 +14,7 @@ let rec align (Expr(clauses)) =
       )
   )
 
-and align_clause (Clause (Var(left_ident, _), body)) =
+and initial_align_clause (Clause (Var(left_ident, _), body)) =
   let type_variable = Type_variable (left_ident) in
   match body with
   | Value_body (value) ->
@@ -25,7 +25,7 @@ and align_clause (Clause (Var(left_ident, _), body)) =
           Lower_bound_constraint (
             Restricted_type_lower_bound (
               Restricted_type (
-                align_value value,
+                initial_align_value value,
                 Type_restriction (
                   Positive_pattern_set(Pattern_set.empty),
                   Negative_pattern_set(Pattern_set.empty)
@@ -94,8 +94,8 @@ and align_clause (Clause (Var(left_ident, _), body)) =
             Conditional_lower_bound (
               Type_variable (subject_ident),
               pattern,
-              align_function function_value_match,
-              align_function function_value_doesnt_match
+              initial_align_function function_value_match,
+              initial_align_function function_value_doesnt_match
             ),
             type_variable
           )
@@ -103,28 +103,28 @@ and align_clause (Clause (Var(left_ident, _), body)) =
         Constraint_set.empty
     )
 
-and align_value value =
+and initial_align_value value =
   match value with
   | Value_record(record_value) ->
-    Record_type (align_record record_value)
+    Record_type (initial_align_record record_value)
   | Value_function(function_value) ->
-    Function_type_type (align_function function_value)
+    Function_type_type (initial_align_function function_value)
 
-and align_record (Record_value (records)) =
+and initial_align_record (Record_value (records)) =
   Ident_map.fold
     (
-      fun label (Var(ident, _)) aligned_records ->
+      fun label (Var(ident, _)) initial_aligned_records ->
         Ident_map.add
           label
           (Type_variable (ident))
-          aligned_records
+          initial_aligned_records
     )
     records
     Ident_map.empty
 
-and align_function (Function_value (Var(parameter_ident, _), body)) =
+and initial_align_function (Function_value (Var(parameter_ident, _), body)) =
   Function_type (
     (Type_variable parameter_ident),
-    align body
+    initial_align_expr body
   )
 ;;
