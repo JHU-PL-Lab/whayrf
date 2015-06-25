@@ -397,6 +397,20 @@ let is_inconsistent constraint_set =
                          )
                       )
 
+                    | (
+                      Type_variable_constraint (type_variable, pattern),
+                      _,
+                      _
+                    ) ->
+                      is_compatible_type_variable
+                        type_variable
+                        constraint_set
+                        (Type_restriction (
+                            Positive_pattern_set (Pattern_set.empty),
+                            Negative_pattern_set (Pattern_set.add pattern Pattern_set.empty)
+                          )
+                        )
+
                     | _ -> false
                 )
           )
