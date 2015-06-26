@@ -46,7 +46,9 @@ and pretty_tconstraint tconstraint =
   | Type_variable_constraint(type_variable, pattern) ->
     pretty_type_variable type_variable ^ " <: " ^ pretty_pattern pattern
   | Function_pattern_matching_constraint(function_type, pattern) ->
-    pretty_function_type function_type ^ " o~ " ^ pretty_pattern pattern
+    pretty_function_type function_type ^ " +~ " ^ pretty_pattern pattern
+  | Function_pattern_antimatching_constraint(function_type, pattern) ->
+    pretty_function_type function_type ^ " -~ " ^ pretty_pattern pattern
 
 and pretty_function_type (Function_type (type_variable, constrained_type)) =
   pretty_type_variable type_variable ^ " -> " ^ pretty_constrained_type constrained_type
