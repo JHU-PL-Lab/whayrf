@@ -1048,3 +1048,65 @@ let rec perform_closure constraint_set =
   else
     augmented_constraint_set
 ;;
+
+let rec function_pattern_search_restricted_type
+    (Restricted_type (ttype, _))
+    constraint_set
+    pattern =
+  function_pattern_search_ttype ttype constraint_set pattern
+
+and function_pattern_search_ttype ttype constraint_set pattern =
+  match ttype with
+  | Record_type (record_elements) ->
+    begin
+      match pattern with
+      | Record_pattern (pattern_elements) ->
+        record_elements
+        |> Ident_map.enum
+        |> Enum.map
+          (
+            fun (record_label, type_variable) ->
+              pattern_elements
+              |> Ident_map.enum
+              |> Enum.filter_map
+                (
+                  fun (pattern_label, pattern) ->
+                    if record_label = pattern_label then
+                      Some (
+                        function_pattern_search_type_variable
+                          type_variable
+                          constraint_set
+                          pattern
+                      )
+                    else
+                      None
+                )
+              |> Enum.reduce Constraint_set.union
+          )
+        |> Enum.reduce Constraint_set.union
+      | _ ->
+        Constraint_set.empty
+    end
+  | _ ->
+    (* TODO: Not implemented yet. *)
+    Constraint_set.empty
+
+and function_pattern_search_type_variable type_variable constraint_set pattern =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Restricted_type_lower_bound (restricted_type),
+            other_type_variable
+          ) ->
+          if type_variable = other_type_variable then
+            Some (function_pattern_search_restricted_type restricted_type constraint_set pattern)
+          else
+            None
+        | _ -> None
+    )
+  |> Enum.reduce Constraint_set.union
+;;
