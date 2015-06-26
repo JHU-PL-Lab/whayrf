@@ -1,4 +1,5 @@
 # EXPECT-TYPECHECK
+# {} ~ {}
 e = {};
 a = { k = e };
 b = a ~ { k : {} } ? fun ma -> { rma = {} } : fun aa -> { ac = {}; ad = {}; raa = ac ad };

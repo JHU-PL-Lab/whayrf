@@ -1,0 +1,6 @@
+# EXPECT-TYPEFAIL
+# { a: { b: {} } } ~ { a: {} }
+ae = {};
+be = { b = ae };
+a = { a = be };
+b = a ~ { a : {} } ? fun aa -> { ac = {}; ad = {}; raa = ac ad } : fun ma -> { rma = {} };

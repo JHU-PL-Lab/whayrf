@@ -1,3 +1,4 @@
 # EXPECT-TYPEFAIL
+# {} ~ {}
 a = {};
 b = a ~ { k : {} } ? fun ma -> { rma = {} } : fun aa -> { ac = {}; ad = {}; raa = ac ad };

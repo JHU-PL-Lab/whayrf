@@ -1,4 +1,5 @@
 # EXPECT-TYPECHECK
+# { a: {}, b: {} } ~ { a: {} }
 ae = {};
 be = {};
 a = { ak = ae, bk = be };

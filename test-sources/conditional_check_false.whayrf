@@ -1,5 +1,5 @@
-# EXPECT-EVALUATE
 # EXPECT-TYPECHECK
+# EXPECT-EVALUATE
 e = {};
 # Fail to match {} with {l : {}}
 c = e ~ {l : {}} ? fun a -> { rra = {}; ra = {y = rra} } : fun b -> { rrb = {}; rb = {n = rrb} };
