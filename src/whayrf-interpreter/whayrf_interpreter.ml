@@ -130,7 +130,7 @@ let rec is_compatible value env pattern dispatch_table =
     dispatch_table value pattern
 ;;
 
-let rec evaluate env lastvar cls =
+let rec evaluate env lastvar cls dispatch_table =
   logger `debug (
       pretty_env env ^ "\n" ^
       (Option.default "?" (Option.map pretty_var lastvar)) ^ "\n" ^
@@ -151,11 +151,11 @@ let rec evaluate env lastvar cls =
       match b with
       | Value_body(v) ->
           Environment.add env x v;
-          evaluate env (Some x) t
+          evaluate env (Some x) t dispatch_table
       | Var_body(x') ->
           let v = lookup env x' in
           Environment.add env x v;
-          evaluate env (Some x) t
+          evaluate env (Some x) t dispatch_table
       | Appl_body(x', x'') ->
           begin
             match lookup env x' with
@@ -163,7 +163,7 @@ let rec evaluate env lastvar cls =
                   ("cannot apply " ^ pretty_var x' ^
                     " as it contains non-function " ^ pretty_value r))
               | Value_function(f) ->
-                  evaluate env (Some x) @@ fresh_wire f x'' x @ t
+                  evaluate env (Some x) (fresh_wire f x'' x @ t) dispatch_table
           end
       | Projection_body(x',l) ->
           begin
@@ -172,7 +172,7 @@ let rec evaluate env lastvar cls =
               if Ident_map.mem l r then
                 let v = lookup env @@ Ident_map.find l r in
                 Environment.add env x v;
-                evaluate env (Some x) t
+                evaluate env (Some x) t dispatch_table
               else
                 raise (Evaluation_failure
                   ("cannot find label " ^ pretty_ident l ^
@@ -183,20 +183,14 @@ let rec evaluate env lastvar cls =
                                                   " as it contains non-record " ^ pretty_value f))
           end
       | Conditional_body(x',p,f1,f2) ->
-        (* TODO: The first pass of implementation is ignoring the dispatch
-                 table, because we need the type system to make it work and the
-                 type system doesn't exist yet. We're always failing to match,
-                 which is a good default because we're always failing to produce
-                 a proof (that's bad but not incorrect). We need to come back
-                 here and implement this right. *)
-        let successful_match = is_compatible (lookup env x') env p (fun value pattern -> false) in
+        let successful_match = is_compatible (lookup env x') env p dispatch_table in
         let f_target = if successful_match then f1 else f2 in
-        evaluate env (Some x) @@ fresh_wire f_target x' x @ t            
+        evaluate env (Some x) (fresh_wire f_target x' x @ t) dispatch_table
 ;;
 
-let eval (Expr(cls)) =
+let eval (Expr(cls)) dispatch_table =
   let env = Environment.create(20) in
   let repl_fn = repl_fn_for cls (Freshening_stack []) Var_set.empty in
   let cls' = List.map (var_replace_clause repl_fn) cls in
-  evaluate env None cls'
+  evaluate env None cls' dispatch_table
 ;;

@@ -1259,3 +1259,9 @@ let rec perform_closure constraint_set =
   else
     augmented_constraint_set
 ;;
+
+let build_dispatch_table constraint_set =
+  fun function_value pattern ->
+    (* TODO: Not implemented yet. *)
+    false
+;;

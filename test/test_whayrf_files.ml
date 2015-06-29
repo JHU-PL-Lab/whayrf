@@ -44,7 +44,7 @@ let make_test filename expectations =
   (* Verify that it is well-formed. *)
   check_wellformed_expr expr;
   (* Next, typecheck it. *)
-  let typecheck_result = typecheck expr in
+  let (typecheck_result, dispatch_table) = typecheck expr in
   let make_single_test expectation =
     let test_name_expectation = match expectation with
       | Expect_evaluate ->
@@ -65,14 +65,14 @@ let make_test filename expectations =
       | Expect_evaluate ->
         begin
           try
-            ignore @@ eval expr
+            ignore @@ eval expr dispatch_table
           with Evaluation_failure(failure) ->
             assert_failure @@ "Evaluation became stuck: " ^ failure
         end
       | Expect_stuck ->
         begin
           try
-            ignore (eval expr);
+            ignore (eval expr dispatch_table);
             assert_failure ("Evaluation completed")                
           with Evaluation_failure(failure) ->
             ()

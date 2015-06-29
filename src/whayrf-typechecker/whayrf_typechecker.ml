@@ -42,5 +42,5 @@ let typecheck e =
     )
   ;
   (* Step 3: Look for inconsistencies. *)
-  is_consistent constraint_set'
+  (is_consistent constraint_set', build_dispatch_table constraint_set')
   ;;

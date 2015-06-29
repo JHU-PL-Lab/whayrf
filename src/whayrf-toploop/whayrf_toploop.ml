@@ -10,9 +10,10 @@ let toploop_operate e =
   begin
     try
       check_wellformed_expr e;
+      let (is_typechecked, dispatch_table) = typecheck e in
       (
-        if typecheck e then
-         let v,env = eval e in
+        if is_typechecked then
+         let v,env = eval e dispatch_table in
          print_string (pretty_var v ^ " where "  ^ pretty_env env ^ "\n");
         else
           print_string "Type error.\n"
