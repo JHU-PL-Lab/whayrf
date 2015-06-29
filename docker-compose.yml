@@ -4,6 +4,8 @@ whayrf:
     - .:/home/opam/whayrf
   working_dir: /home/opam/whayrf
   entrypoint: ["bash", "-ic"]
+  environment:
+    OCAMLRUNPARAM: b
   command: ["
              # Use the OASIS metadata to generate a configuration script.
 
