@@ -1014,12 +1014,7 @@ let close_by_unknown_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-let close_by_function_closure constraint_set =
-  (* TODO: Not implemented yet. *)
-  Constraint_set.empty
-;;
-
-let rec perform_closure constraint_set =
+let rec perform_non_function_closure constraint_set =
   let closure_functions =
     [
       close_by_transitivity;
@@ -1028,8 +1023,7 @@ let rec perform_closure constraint_set =
       close_by_conditional_success;
       close_by_conditional_failure;
       close_by_unknown_application;
-      close_by_unknown_projection;
-      close_by_function_closure
+      close_by_unknown_projection
     ]
   in
   let augmented_constraint_set =
@@ -1044,7 +1038,7 @@ let rec perform_closure constraint_set =
   in
   if (Enum.count (Constraint_set.enum constraint_set)) <>
      (Enum.count (Constraint_set.enum augmented_constraint_set)) then
-    perform_closure augmented_constraint_set
+    perform_non_function_closure augmented_constraint_set
   else
     augmented_constraint_set
 ;;
@@ -1129,7 +1123,7 @@ and function_pattern_search_ttype ttype constraint_set pattern =
       ) body_constraint_set
     in
     let closed_constraint_set_to_test =
-      perform_closure constraint_set_to_test
+      perform_non_function_closure constraint_set_to_test
     in
     let is_consistent_constraint_set_to_test =
       is_consistent closed_constraint_set_to_test
@@ -1190,4 +1184,28 @@ let perform_function_closure constraint_set =
         | _ -> None
     )
   |> Enum.reduce Constraint_set.union
+;;
+
+let rec perform_closure constraint_set =
+  let closure_functions =
+    [
+      perform_non_function_closure;
+      perform_function_closure
+    ]
+  in
+  let augmented_constraint_set =
+    List.fold_left
+      (
+        fun partially_augmented_constraint_set closure_function ->
+          let inferred_constraints = closure_function partially_augmented_constraint_set in
+          Constraint_set.union partially_augmented_constraint_set inferred_constraints
+      )
+      constraint_set
+      closure_functions
+  in
+  if (Enum.count (Constraint_set.enum constraint_set)) <>
+     (Enum.count (Constraint_set.enum augmented_constraint_set)) then
+    perform_closure augmented_constraint_set
+  else
+    augmented_constraint_set
 ;;
