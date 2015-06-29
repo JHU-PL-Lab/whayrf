@@ -1075,9 +1075,9 @@ and function_pattern_search_ttype ttype constraint_set pattern =
                 else
                   None
             )
-          |> Enum.reduce Constraint_set.union
+          |> Enum.fold Constraint_set.union Constraint_set.empty
       )
-    |> Enum.reduce Constraint_set.union
+    |> Enum.fold Constraint_set.union Constraint_set.empty
 
   | (
     Function_type_type (
@@ -1161,7 +1161,7 @@ and function_pattern_search_type_variable type_variable constraint_set pattern =
             None
         | _ -> None
     )
-  |> Enum.reduce Constraint_set.union
+  |> Enum.fold Constraint_set.union Constraint_set.empty
 ;;
 
 let perform_function_closure constraint_set =
@@ -1183,7 +1183,7 @@ let perform_function_closure constraint_set =
           Some (function_pattern_search_type_variable subject_type_variable constraint_set pattern)
         | _ -> None
     )
-  |> Enum.reduce Constraint_set.union
+  |> Enum.fold Constraint_set.union Constraint_set.empty
 ;;
 
 let rec perform_closure constraint_set =
