@@ -1,4 +1,4 @@
 # EXPECT-TYPECHECK
 # EXPECT-EVALUATE
 a = fun b -> { ra = b };
-c = a ~ fun {} ~> { { a : {} } } ? fun nm -> { aa = {}; ab = {}; ac = ab ac } : fun m -> { rm = {} };
+c = a ~ fun {} ~> { {} } ? fun m -> { rm = {} } : fun nm -> { aa = {}; ab = {}; ac = aa ab };
