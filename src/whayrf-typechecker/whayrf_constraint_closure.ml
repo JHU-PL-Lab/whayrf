@@ -344,8 +344,6 @@ let is_inconsistent constraint_set =
               |> Enum.exists
                 (
                   fun tconstraint_3 ->
-                    (tconstraint_1 <> tconstraint_2) &&
-                    (tconstraint_2 <> tconstraint_3) &&
                     match (tconstraint_1, tconstraint_2, tconstraint_3) with
                     | (
                       Lower_bound_constraint (
