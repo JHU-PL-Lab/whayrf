@@ -45,9 +45,14 @@ and pretty_tconstraint tconstraint =
     pretty_lower_bound lower_bound ^ " <: " ^ pretty_type_variable type_variable
   | Type_variable_constraint(type_variable, pattern) ->
     pretty_type_variable type_variable ^ " <: " ^ pretty_pattern pattern
-  | Function_pattern_matching_constraint(function_type, pattern) ->
+  | Function_pattern_matching_constraint(function_pattern_matching_constraint) ->
+    pretty_function_pattern_matching_constraint function_pattern_matching_constraint
+
+and pretty_function_pattern_matching_constraint function_pattern_matching_constraint =
+  match function_pattern_matching_constraint with
+  | Function_pattern_matching_constraint_positive(function_type, pattern) ->
     pretty_function_type function_type ^ " +~ " ^ pretty_pattern pattern
-  | Function_pattern_antimatching_constraint(function_type, pattern) ->
+  | Function_pattern_matching_constraint_negative(function_type, pattern) ->
     pretty_function_type function_type ^ " -~ " ^ pretty_pattern pattern
 
 and pretty_function_type (Function_type (type_variable, constrained_type)) =

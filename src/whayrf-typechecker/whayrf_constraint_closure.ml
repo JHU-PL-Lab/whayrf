@@ -1129,16 +1129,18 @@ and function_pattern_search_ttype ttype constraint_set pattern =
       is_consistent closed_constraint_set_to_test
     in
     let new_constraint =
+      Function_pattern_matching_constraint (
       if is_consistent_constraint_set_to_test then
-        Function_pattern_matching_constraint (
+        Function_pattern_matching_constraint_positive (
           function_type,
           pattern
         )
       else
-        Function_pattern_antimatching_constraint (
+        Function_pattern_matching_constraint_negative (
           function_type,
           pattern
         )
+      )
     in
     Constraint_set.add new_constraint Constraint_set.empty
   | _ ->

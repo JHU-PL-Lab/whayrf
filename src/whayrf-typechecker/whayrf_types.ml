@@ -42,8 +42,10 @@ sig
   and tconstraint =
     | Lower_bound_constraint of lower_bound * type_variable
     | Type_variable_constraint of type_variable * pattern
-    | Function_pattern_matching_constraint of function_type * pattern
-    | Function_pattern_antimatching_constraint of function_type * pattern
+    | Function_pattern_matching_constraint of function_pattern_matching_constraint
+  and function_pattern_matching_constraint =
+    | Function_pattern_matching_constraint_positive of function_type * pattern
+    | Function_pattern_matching_constraint_negative of function_type * pattern
   and function_type =
     | Function_type of type_variable * constrained_type
   and ttype =
