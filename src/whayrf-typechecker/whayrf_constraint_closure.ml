@@ -3,6 +3,7 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_initial_alignment;;
 open Whayrf_types;;
+open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
 let project_pattern_set label pattern_set =
@@ -1179,16 +1180,16 @@ and function_pattern_search_ttype ttype constraint_set pattern =
     in
     let new_constraint =
       Function_pattern_matching_constraint (
-      if is_consistent_constraint_set_to_test then
-        Function_pattern_matching_constraint_positive (
-          function_type,
-          pattern
-        )
-      else
-        Function_pattern_matching_constraint_negative (
-          function_type,
-          pattern
-        )
+        if is_consistent_constraint_set_to_test then
+          Function_pattern_matching_constraint_positive (
+            function_type,
+            pattern
+          )
+        else
+          Function_pattern_matching_constraint_negative (
+            function_type,
+            pattern
+          )
       )
     in
     Constraint_set.add new_constraint Constraint_set.empty
@@ -1268,8 +1269,6 @@ let rec unfreshen_function_value (Function_value (parameter, body)) =
   )
 
 and unfreshen_var (Var (name, _)) =
-  (* TODO: Confirm that None is the best option here (as opposed to an empty
-     freshening stack). *)
   Var (name, None)
 
 and unfreshen_expr (Expr(clauses)) =
@@ -1321,24 +1320,22 @@ let build_dispatch_table constraint_set =
         initial_align_function unfreshened_function_value
       in
       let is_antimatch =
-        not (
-          constraint_set
-          |> Constraint_set.enum
-          |> Enum.exists
-            (
-              fun tconstraint ->
-                match tconstraint with
-                | Function_pattern_matching_constraint (
-                    Function_pattern_matching_constraint_negative (
-                      other_function_type,
-                      other_pattern
-                    )
-                  ) ->
-                  (function_type = other_function_type) &&
-                  (pattern = other_pattern)
-                | _ -> false
-            )
-        )
+        constraint_set
+        |> Constraint_set.enum
+        |> Enum.exists
+          (
+            fun tconstraint ->
+              match tconstraint with
+              | Function_pattern_matching_constraint (
+                  Function_pattern_matching_constraint_negative (
+                    other_function_type,
+                    other_pattern
+                  )
+                ) ->
+                (function_type = other_function_type) &&
+                (pattern = other_pattern)
+              | _ -> false
+          )
       in
       if is_antimatch then
         false
