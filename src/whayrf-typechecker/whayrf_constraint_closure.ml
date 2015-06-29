@@ -501,7 +501,7 @@ let close_by_transitivity constraint_set =
                 if intermediate_type_variable = other_intermediate_type_variable then
                   Some (
                     Lower_bound_constraint(
-                      Type_variable_lower_bound(intermediate_type_variable),
+                      Restricted_type_lower_bound(restricted_type),
                       final_type_variable
                     )
                   )
