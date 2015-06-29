@@ -273,9 +273,57 @@ and is_compatible_ttype
           (Negative_pattern_set(negative_patterns))
       )
 
-    | _ ->
-      (* TODO: Not implemented yet. *)
-      false
+    | Function_type_type (
+        function_type
+      ) ->
+      (
+        positive_patterns
+        |> Pattern_set.enum
+        |> Enum.for_all
+          (
+            fun pattern ->
+              constraint_set
+              |> Constraint_set.enum
+              |> Enum.exists
+                (
+                  fun tconstraint ->
+                    match tconstraint with
+                    | Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_positive (
+                          other_function_type,
+                          other_pattern
+                        )
+                      ) ->
+                      (function_type = other_function_type) &&
+                      (pattern = other_pattern)
+                    | _ -> false
+                )
+          )
+      ) &&
+      (
+        negative_patterns
+        |> Pattern_set.enum
+        |> Enum.for_all
+          (
+            fun pattern ->
+              constraint_set
+              |> Constraint_set.enum
+              |> Enum.exists
+                (
+                  fun tconstraint ->
+                    match tconstraint with
+                    | Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_negative (
+                          other_function_type,
+                          other_pattern
+                        )
+                      ) ->
+                      (function_type = other_function_type) &&
+                      (pattern = other_pattern)
+                    | _ -> false
+                )
+          )
+      )
 ;;
 
 let is_inconsistent constraint_set =
