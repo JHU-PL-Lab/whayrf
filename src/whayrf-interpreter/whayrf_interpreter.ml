@@ -3,6 +3,7 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_ast_pretty;;
 open Whayrf_ast_uid;;
+open Whayrf_evaluation_failure;;
 
 let logger = Whayrf_logger.make_logger "Whayrf_interpreter";;
 
@@ -18,8 +19,6 @@ let pretty_env (env : value Environment.t) =
   in
   "{ " ^ inner ^ " }"
   ;;
-
-exception Evaluation_failure of string;;
 
 let lookup env x =
   if Environment.mem env x then

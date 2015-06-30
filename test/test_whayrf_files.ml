@@ -15,6 +15,7 @@ open Batteries;;
 open OUnit2;;
 
 open Whayrf_ast_wellformedness;;
+open Whayrf_evaluation_failure;;
 open Whayrf_interpreter;;
 open Whayrf_parser;;
 open Whayrf_typechecker;;
