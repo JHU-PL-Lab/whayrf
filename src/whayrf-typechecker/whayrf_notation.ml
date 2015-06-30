@@ -19,7 +19,6 @@ let project_pattern_set label pattern_set =
         if Ident_map.mem label pattern_elements then
           Some (Ident_map.find label pattern_elements)
         else
-          (* QUESTION: Should we raise here? If we do, tests don't pass anymore. *)
           None
       | _ -> raise @@ Invariant_failure "Tried to project label out of a non-record pattern."
   )
