@@ -1,0 +1,44 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This test captures the meaning of the callWithDefault program in the overview
+# section of the paper:
+#
+#   let callWithDefault f = case f of
+#      {} ~> int as g -> g {}
+#     int ~> int as g -> g 1 in
+#   callWithDefault (fun n -> n + 3)
+#
+# Since we don't have integers nor integer addition, this test uses record and
+# record projection instead. The pseudocode for it would be:
+#
+#   let callWithDefault f = case f of
+#     {} ~> { int: {} } as g -> g {}
+#     { int: {} } ~> { int: {} } as g -> g { int: {} } in
+#   callWithDefault (fun n -> n.int)
+#
+# It takes the second branch and should result in an empty record.
+
+callWithDefault = fun f -> {
+  returnCallWithDefault = f ~ fun {} ~> { { int: {} } } ?
+    gMatch -> {
+      parameterGMatch = {};
+      returnGMatch = gMatch parameterGMatch
+    } : gAntimatch -> {
+      returnGAntimatch = gAntimatch ~ fun { int: {} } ~> { { int: {} } } ?
+        gAntimatchMatch -> {
+          rawIntegerGAntimatchMatch = {};
+          taggedIntegerGAntimatchMatch = { int = rawIntegerGAntimatchMatch };
+          returnGAntimatchMatch = gAntimatchMatch taggedIntegerGAntimatchMatch
+        } : gAntimatchAntimatch -> {
+          bogusFunctionGAntimatchAntimatch = {};
+          parameterForBogusFunctionGAntimatchAntimatch = {};
+          returnGAntimatchAntimatch = bogusFunctionGAntimatchAntimatch parameterForBogusFunctionGAntimatchAntimatch
+        }
+    }
+};
+functionParameterForCallWithDefault = fun n -> {
+  rawIntegerFunctionParameterForCallWithDefault = n.int;
+  returnFunctionParameterForCallWithDefault = { int = rawIntegerFunctionParameterForCallWithDefault }
+};
+return = callWithDefault functionParameterForCallWithDefault;
