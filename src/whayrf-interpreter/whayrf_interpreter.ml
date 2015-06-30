@@ -5,6 +5,7 @@ open Whayrf_ast_pretty;;
 open Whayrf_ast_uid;;
 open Whayrf_environment;;
 open Whayrf_evaluation_failure;;
+open Whayrf_value_compatibility;;
 
 let logger = Whayrf_logger.make_logger "Whayrf_interpreter";;
 
@@ -76,34 +77,6 @@ let fresh_wire (Function_value(param_x, Expr(body))) arg_x call_site_x =
   let Clause(last_var, _) = List.last freshened_body in
   let tail_clause = Clause(call_site_x, Var_body(last_var)) in
   [head_clause] @ freshened_body @ [tail_clause]
-;;
-
-let rec is_compatible value env pattern dispatch_table =
-  match pattern with
-  | Record_pattern(js) ->
-    begin
-      match value with
-      | Value_record(Record_value(is)) ->
-        Ident_map.fold (
-          fun label pattern' result ->
-            result &&
-            Ident_map.mem label is &&
-            let value' = lookup env @@ Ident_map.find label is in
-            is_compatible value' env pattern' dispatch_table
-        ) js true
-      | Value_function(_) -> false
-    end
-
-  | Function_pattern(parameter_pattern, body_pattern) ->
-    begin
-      match value with
-      | Value_record(_) -> false
-      | Value_function(_) -> dispatch_table value pattern
-    end
-
-  | Pattern_variable_pattern(_)
-  | Forall_pattern(_) ->
-    dispatch_table value pattern
 ;;
 
 let rec evaluate env lastvar cls dispatch_table =

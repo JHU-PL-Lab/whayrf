@@ -54,7 +54,8 @@ Library "whayrf-interpreter"
   Modules:
     Whayrf_environment,
     Whayrf_evaluation_failure,
-    Whayrf_interpreter
+    Whayrf_interpreter,
+    Whayrf_value_compatibility
   BuildDepends:
     batteries,
     whayrf-ast,
