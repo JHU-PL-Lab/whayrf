@@ -28,6 +28,11 @@ type pattern_set =
   | Negative_pattern_set_pattern_set of negative_pattern_set
 ;;
 
+(* The following hack is necessary to have a type whose one of the variants
+   refers to a set of one the other defined types. In particular, the constraint
+   set is a set of constraints, which in turn are indirectly defined in terms of
+   constraint sets.
+*)
 module type Types_basis =
 sig
   type constraint_set
