@@ -2,6 +2,7 @@ open Batteries;;
 
 open Whayrf_ast_pretty;;
 open Whayrf_ast_wellformedness;;
+open Whayrf_environment;;
 open Whayrf_interpreter;;
 open Whayrf_typechecker;;
 

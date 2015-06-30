@@ -52,6 +52,7 @@ Library "whayrf-parser"
 Library "whayrf-interpreter"
   Path: src/whayrf-interpreter
   Modules:
+    Whayrf_environment,
     Whayrf_evaluation_failure,
     Whayrf_interpreter
   BuildDepends:
