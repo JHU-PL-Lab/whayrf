@@ -68,6 +68,7 @@ Library "whayrf-typechecker"
     Whayrf_initial_alignment,
     Whayrf_notation,
     Whayrf_pattern_subsumption,
+    Whayrf_type_compatibility,
     Whayrf_typechecker,
     Whayrf_types,
     Whayrf_types_pretty
