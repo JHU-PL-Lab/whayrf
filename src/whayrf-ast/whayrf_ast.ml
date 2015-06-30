@@ -98,3 +98,55 @@ and pattern_variable =
   | Pattern_variable of ident
   | Fresh_pattern_variable of int
 ;;
+
+(**
+   Utils to manipulate the AST.
+*)
+
+(** Counter used to provide new fresh pattern variables. *)
+let fresh_pattern_variable_counter = ref 0;;
+
+(** Returns a new fresh pattern variable guaranteed to never be seen by the
+    program. *)
+let new_fresh_pattern_variable () =
+  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
+  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
+  Fresh_pattern_variable current_fresh_pattern_variable
+;;
+
+(** Perform substitution on patterns. It's the operation represented by
+    $\pi\[\beta \ \beta'\]$. A.k.a. alpha substitution. *)
+let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variable =
+  match pattern with
+  | Record_pattern (pattern_elements) ->
+    Record_pattern (
+      Ident_map.map
+        (
+          fun subpattern ->
+            rename_pattern_variable subpattern new_pattern_variable old_pattern_variable
+        )
+        pattern_elements
+    )
+  | Function_pattern (function_pattern, parameter_pattern) ->
+    Function_pattern (
+      rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
+      rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
+    )
+  | Pattern_variable_pattern (this_pattern_variable) ->
+    if this_pattern_variable = old_pattern_variable then
+      Pattern_variable_pattern (new_pattern_variable)
+    else
+      pattern
+  | Forall_pattern (this_pattern_variable, subpattern) ->
+    (* Prevents shadowed variables from being renamed. *)
+    if this_pattern_variable = old_pattern_variable then
+      pattern
+    else
+      Forall_pattern (
+        new_pattern_variable,
+        rename_pattern_variable
+          subpattern
+          new_pattern_variable
+          old_pattern_variable
+      )
+;;

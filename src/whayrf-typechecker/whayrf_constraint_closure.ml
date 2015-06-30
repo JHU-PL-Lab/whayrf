@@ -3,51 +3,10 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_initial_alignment;;
 open Whayrf_notation;;
+open Whayrf_pattern_subsumption;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
-
-let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variable =
-  match pattern with
-  | Record_pattern (pattern_elements) ->
-    Record_pattern (
-      Ident_map.map
-        (
-          fun pattern ->
-            rename_pattern_variable pattern new_pattern_variable old_pattern_variable
-        )
-        pattern_elements
-    )
-  | Function_pattern (function_pattern, parameter_pattern) ->
-    Function_pattern (
-      rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
-      rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
-    )
-  | Pattern_variable_pattern (this_pattern_variable) ->
-    if this_pattern_variable = old_pattern_variable then
-      Pattern_variable_pattern (new_pattern_variable)
-    else
-      pattern
-  | Forall_pattern (this_pattern_variable, subpattern) ->
-    if this_pattern_variable = old_pattern_variable then
-      pattern
-    else
-      Forall_pattern (
-        new_pattern_variable,
-        rename_pattern_variable
-          subpattern
-          new_pattern_variable
-          old_pattern_variable
-      )
-;;
-
-let fresh_pattern_variable_counter = ref 0;;
-
-let new_fresh_pattern_variable () =
-  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
-  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
-  Fresh_pattern_variable current_fresh_pattern_variable
-;;
 
 let instantiate_pattern pattern =
   match pattern with
@@ -60,76 +19,6 @@ let instantiate_pattern pattern =
 
 let instantiate_pattern_set pattern_set =
   Pattern_set.map instantiate_pattern pattern_set
-;;
-
-let rec is_subsumption_pattern_set
-    (Positive_pattern_set (positive_patterns))
-    (Negative_pattern_set (negative_patterns))
-  =
-  positive_patterns
-  |> Pattern_set.enum
-  |> Enum.exists
-    (
-      fun positive_pattern ->
-        negative_patterns
-        |> Pattern_set.enum
-        |> Enum.exists
-          (
-            fun negative_pattern ->
-              is_subsumption_pattern positive_pattern negative_pattern
-          )
-    )
-
-and is_subsumption_pattern pattern_1 pattern_2 =
-  match (pattern_1, pattern_2) with
-  | (
-    Record_pattern (record_patterns_1),
-    Record_pattern (record_patterns_2)
-  ) ->
-    record_patterns_2
-    |> Ident_map.enum
-    |> Enum.for_all
-      (
-        fun (label_2, pattern_2) ->
-          record_patterns_1
-          |> Ident_map.enum
-          |> Enum.exists
-            (
-              fun (label_1, pattern_1) ->
-                (label_1 = label_2) &&
-                (is_subsumption_pattern pattern_1 pattern_2)
-            )
-      )
-  | (
-    Function_pattern (function_pattern_1, parameter_pattern_1),
-    Function_pattern (function_pattern_2, parameter_pattern_2)
-  ) ->
-    (is_subsumption_pattern parameter_pattern_1 parameter_pattern_2) &&
-    (is_subsumption_pattern function_pattern_2 function_pattern_1)
-  | (
-    Pattern_variable_pattern _,
-    Pattern_variable_pattern _
-  ) ->
-    pattern_1 = pattern_2
-  | (
-    Forall_pattern (ident, sub_pattern_1),
-    _
-  ) ->
-    (* TODO: Not implemented yet. *)
-    false
-  | (
-    _,
-    Forall_pattern (old_pattern_variable, sub_pattern_2)
-  ) ->
-    let new_pattern_variable = new_fresh_pattern_variable () in
-    let renamed_pattern =
-      rename_pattern_variable
-        pattern_2
-        new_pattern_variable
-        old_pattern_variable
-    in
-    is_subsumption_pattern pattern_1 renamed_pattern
-  | _ -> false
 ;;
 
 let rec is_compatible_restricted_type
