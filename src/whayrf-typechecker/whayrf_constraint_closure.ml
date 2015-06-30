@@ -6,8 +6,6 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-let logger = Whayrf_logger.make_logger "Whayrf_constraint_closure";;
-
 let project_pattern_set label pattern_set =
   pattern_set
   |> Pattern_set.enum
@@ -512,59 +510,6 @@ let close_by_transitivity constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
-;;
-
-let is_transitively_closed constraint_set =
-  constraint_set
-  |> Constraint_set.enum
-  |> Enum.for_all
-    (
-      fun lower_bound_constraint ->
-        match lower_bound_constraint with
-        | Lower_bound_constraint (
-            Restricted_type_lower_bound (restricted_type), type_variable
-          ) ->
-          constraint_set
-          |> Constraint_set.enum
-          |> Enum.for_all
-            (
-              fun type_variable_constraint ->
-                match type_variable_constraint with
-                | Lower_bound_constraint (
-                    Type_variable_lower_bound (
-                      other_type_variable
-                    ),
-                    upper_bounding_type_variable
-                  ) ->
-                  if type_variable = other_type_variable then(
-                    (
-                      match restricted_type with
-                      | Restricted_type (Unknown_type, _) ->
-                        logger `trace @@ "Type variable in question at least: " ^ pretty_type_variable type_variable
-                      | _ -> ()
-                    );
-                  constraint_set
-                    |> Constraint_set.enum
-                    |> Enum.exists
-                      (
-                        fun target_constraint ->
-                          match target_constraint with
-                          | Lower_bound_constraint (
-                              Restricted_type_lower_bound (
-                                other_restricted_type
-                              ),
-                              other_upper_bounding_type_variable
-                            ) ->
-                            (restricted_type = other_restricted_type) &&
-                            (upper_bounding_type_variable = other_upper_bounding_type_variable)
-                          | _ -> true
-                      ))
-                  else
-                    true
-                | _ -> true
-            )
-        | _ -> true
-    )
 ;;
 
 let close_by_projection constraint_set =
@@ -1143,11 +1088,7 @@ let rec perform_non_function_closure constraint_set =
      (Enum.count (Constraint_set.enum augmented_constraint_set)) then
     perform_non_function_closure augmented_constraint_set
   else
-    (if is_transitively_closed augmented_constraint_set then
-       augmented_constraint_set
-     else
-       raise @@ Invariant_failure "N step results in unclosed constraint set."
-    )
+    augmented_constraint_set
 ;;
 
 let rec function_pattern_search_restricted_type
@@ -1236,13 +1177,6 @@ and function_pattern_search_ttype ttype constraint_set pattern =
       is_consistent closed_constraint_set_to_test
     in
     let new_constraint =
-      (
-        if is_transitively_closed closed_constraint_set_to_test then
-          ()
-        else
-          raise @@ Invariant_failure "Testing unclosed constraint set during function pattern search."
-      );
-      logger `trace @@ "Constraint set checked for inconsistency in function_pattern_search: " ^ pretty_constraint_set closed_constraint_set_to_test;
       Function_pattern_matching_constraint (
         if is_consistent_constraint_set_to_test then
           Function_pattern_matching_constraint_positive (
@@ -1256,7 +1190,6 @@ and function_pattern_search_ttype ttype constraint_set pattern =
           )
       )
     in
-    logger `trace @@ "New constraint to be added to the constraint set: " ^ pretty_tconstraint new_constraint;
     Constraint_set.add new_constraint Constraint_set.empty
   | _ ->
     Constraint_set.empty
@@ -1428,5 +1361,5 @@ let build_dispatch_table constraint_set =
         else
           raise (Invariant_failure "Constraint absent from negative pattern set should be present in positive pattern set.")
     | _ ->
-      raise (Invariant_failure "Record shouldn't not passed to dispatch table function.")
+      raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
 ;;
