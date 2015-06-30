@@ -1397,3 +1397,24 @@ let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variabl
           old_pattern_variable
       )
 ;;
+
+let fresh_pattern_variable_counter = ref 0;;
+
+let new_fresh_pattern_variable () =
+  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
+  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
+  Fresh_pattern_variable current_fresh_pattern_variable
+;;
+
+let instantiate_pattern pattern =
+  match pattern with
+  | Forall_pattern (old_pattern_varible, subpattern) ->
+    let new_pattern_variable = new_fresh_pattern_variable () in
+    rename_pattern_variable subpattern new_pattern_variable old_pattern_varible
+  | _ ->
+    pattern
+;;
+
+let instantiate_pattern_set pattern_set =
+  Pattern_set.map instantiate_pattern pattern_set
+;;

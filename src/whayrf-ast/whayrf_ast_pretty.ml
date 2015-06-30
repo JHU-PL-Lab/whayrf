@@ -69,6 +69,10 @@ and pretty_pattern p =
     | Forall_pattern(pattern_variable, p) ->
       "forall " ^ (pretty_pattern_variable pattern_variable) ^ " . " ^ (pretty_pattern p)
 
-and pretty_pattern_variable (Pattern_variable (ident)) =
-  pretty_ident ident
+and pretty_pattern_variable pattern_variable =
+  match pattern_variable with
+  | Pattern_variable (ident) ->
+    pretty_ident ident
+  | Fresh_pattern_variable (count) ->
+    "__" ^ string_of_int count
 ;;

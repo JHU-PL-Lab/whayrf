@@ -94,5 +94,6 @@ and pattern =
   | Forall_pattern of pattern_variable * pattern
 
 and pattern_variable =
-  Pattern_variable of ident
+  | Pattern_variable of ident
+  | Fresh_pattern_variable of int
 ;;
