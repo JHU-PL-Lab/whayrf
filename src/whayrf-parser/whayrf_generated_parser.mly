@@ -112,9 +112,9 @@ pattern:
   | KEYWORD_FUN pattern TILDE_ARROW OPEN_BRACE pattern CLOSE_BRACE
       { Function_pattern($2,$5) }
   | identifier
-      { Pattern_variable_pattern($1) }
+      { Pattern_variable_pattern(Pattern_variable($1)) }
   | KEYWORD_FORALL identifier DOT pattern
-      { Forall_pattern($2,$4) }
+      { Forall_pattern(Pattern_variable($2),$4) }
   ;
 
 separated_nonempty_trailing_list(separator, rule):

@@ -90,6 +90,9 @@ and expr = Expr of clause list
 and pattern =
   | Record_pattern of pattern Ident_map.t
   | Function_pattern of pattern * pattern
-  | Pattern_variable_pattern of ident
-  | Forall_pattern of ident * pattern
+  | Pattern_variable_pattern of pattern_variable
+  | Forall_pattern of pattern_variable * pattern
+
+and pattern_variable =
+  Pattern_variable of ident
 ;;

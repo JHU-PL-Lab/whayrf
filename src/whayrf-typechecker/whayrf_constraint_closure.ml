@@ -1363,3 +1363,37 @@ let build_dispatch_table constraint_set =
     | _ ->
       raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
 ;;
+
+let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variable =
+  match pattern with
+  | Record_pattern (pattern_elements) ->
+    Record_pattern (
+      Ident_map.map
+        (
+          fun pattern ->
+            rename_pattern_variable pattern new_pattern_variable old_pattern_variable
+        )
+        pattern_elements
+    )
+  | Function_pattern (function_pattern, parameter_pattern) ->
+    Function_pattern (
+      rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
+      rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
+    )
+  | Pattern_variable_pattern (this_pattern_variable) ->
+    if this_pattern_variable = old_pattern_variable then
+      Pattern_variable_pattern (new_pattern_variable)
+    else
+      pattern
+  | Forall_pattern (this_pattern_variable, subpattern) ->
+    if this_pattern_variable = old_pattern_variable then
+      pattern
+    else
+      Forall_pattern (
+        new_pattern_variable,
+        rename_pattern_variable
+          subpattern
+          new_pattern_variable
+          old_pattern_variable
+      )
+;;

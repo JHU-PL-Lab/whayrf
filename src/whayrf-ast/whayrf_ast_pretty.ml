@@ -64,8 +64,11 @@ and pretty_pattern p =
         Ident_map.enum is
     | Function_pattern(p1, p2) ->
       (pretty_pattern p1) ^ " ~> { " ^ (pretty_pattern p2) ^ " }"
-    | Pattern_variable_pattern(i) ->
-      pretty_ident i
-    | Forall_pattern(i, p) ->
-      "forall " ^ (pretty_ident i) ^ " . " ^ (pretty_pattern p)
+    | Pattern_variable_pattern(pattern_variable) ->
+      pretty_pattern_variable pattern_variable
+    | Forall_pattern(pattern_variable, p) ->
+      "forall " ^ (pretty_pattern_variable pattern_variable) ^ " . " ^ (pretty_pattern p)
+
+and pretty_pattern_variable (Pattern_variable (ident)) =
+  pretty_ident ident
 ;;
