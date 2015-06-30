@@ -1,0 +1,32 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This example captures the intention of type restriction encoded as
+# pattern matching.
+#
+# Since we don't have integers, this test uses record instead.
+
+g = fun x -> {
+  returnG = x
+};
+h = fun hX -> {
+  returnH = hX ~ { int: {} } ?
+    hXMatch -> {
+      r = fun rY -> {
+        returnR = rY ~ { int : {} } ?
+          rYMatch -> {
+            returnRYMatch = rYMatch
+          } : rYAntimatch -> {
+            bogusFunctionRYAntimatch = {};
+            parameterForBogusFunctionRYAntimatch = {};
+            returnRYAntimatch = bogusFunctionRYAntimatch parameterForBogusFunctionRYAntimatch  
+          }
+      };
+      gAppliedToXMatch = g hXMatch;
+      returnHXMatch = r gAppliedToXMatch
+    } : hXAntimatch -> {
+      bogusFunctionHXAntimatch = {};
+      parameterForBogusFunctionHXAntimatch = {};
+      returnHXAntimatch = bogusFunctionHXAntimatch parameterForBogusFunctionHXAntimatch  
+    }
+};
