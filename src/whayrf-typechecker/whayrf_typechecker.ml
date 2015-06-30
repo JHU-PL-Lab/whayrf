@@ -6,6 +6,7 @@ open Batteries;;
 open Printf;;
 
 open Whayrf_ast_pretty;;
+open Whayrf_consistency;;
 open Whayrf_constraint_closure;;
 open Whayrf_initial_alignment;;
 open Whayrf_types;;

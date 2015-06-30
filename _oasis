@@ -64,6 +64,7 @@ Library "whayrf-interpreter"
 Library "whayrf-typechecker"
   Path: src/whayrf-typechecker
   Modules:
+    Whayrf_consistency,
     Whayrf_constraint_closure,
     Whayrf_initial_alignment,
     Whayrf_notation,
