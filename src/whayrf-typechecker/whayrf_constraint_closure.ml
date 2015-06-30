@@ -86,6 +86,61 @@ and is_subsumption_pattern pattern_1 pattern_2 =
   | _ -> false
 ;;
 
+let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variable =
+  match pattern with
+  | Record_pattern (pattern_elements) ->
+    Record_pattern (
+      Ident_map.map
+        (
+          fun pattern ->
+            rename_pattern_variable pattern new_pattern_variable old_pattern_variable
+        )
+        pattern_elements
+    )
+  | Function_pattern (function_pattern, parameter_pattern) ->
+    Function_pattern (
+      rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
+      rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
+    )
+  | Pattern_variable_pattern (this_pattern_variable) ->
+    if this_pattern_variable = old_pattern_variable then
+      Pattern_variable_pattern (new_pattern_variable)
+    else
+      pattern
+  | Forall_pattern (this_pattern_variable, subpattern) ->
+    if this_pattern_variable = old_pattern_variable then
+      pattern
+    else
+      Forall_pattern (
+        new_pattern_variable,
+        rename_pattern_variable
+          subpattern
+          new_pattern_variable
+          old_pattern_variable
+      )
+;;
+
+let fresh_pattern_variable_counter = ref 0;;
+
+let new_fresh_pattern_variable () =
+  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
+  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
+  Fresh_pattern_variable current_fresh_pattern_variable
+;;
+
+let instantiate_pattern pattern =
+  match pattern with
+  | Forall_pattern (old_pattern_varible, subpattern) ->
+    let new_pattern_variable = new_fresh_pattern_variable () in
+    rename_pattern_variable subpattern new_pattern_variable old_pattern_varible
+  | _ ->
+    pattern
+;;
+
+let instantiate_pattern_set pattern_set =
+  Pattern_set.map instantiate_pattern pattern_set
+;;
+
 let rec is_compatible_restricted_type
     (
       Restricted_type (
@@ -180,6 +235,12 @@ and is_compatible_ttype
           | _ -> true
       )
       |> Pattern_set.of_enum
+    in
+    let positive_patterns =
+      instantiate_pattern_set positive_patterns
+    in
+    let negative_patterns =
+      instantiate_pattern_set negative_patterns
     in
     match ttype with
     | Record_type (record_elements) ->
@@ -1362,59 +1423,4 @@ let build_dispatch_table constraint_set =
           raise (Invariant_failure "Constraint absent from negative pattern set should be present in positive pattern set.")
     | _ ->
       raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
-;;
-
-let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variable =
-  match pattern with
-  | Record_pattern (pattern_elements) ->
-    Record_pattern (
-      Ident_map.map
-        (
-          fun pattern ->
-            rename_pattern_variable pattern new_pattern_variable old_pattern_variable
-        )
-        pattern_elements
-    )
-  | Function_pattern (function_pattern, parameter_pattern) ->
-    Function_pattern (
-      rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
-      rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
-    )
-  | Pattern_variable_pattern (this_pattern_variable) ->
-    if this_pattern_variable = old_pattern_variable then
-      Pattern_variable_pattern (new_pattern_variable)
-    else
-      pattern
-  | Forall_pattern (this_pattern_variable, subpattern) ->
-    if this_pattern_variable = old_pattern_variable then
-      pattern
-    else
-      Forall_pattern (
-        new_pattern_variable,
-        rename_pattern_variable
-          subpattern
-          new_pattern_variable
-          old_pattern_variable
-      )
-;;
-
-let fresh_pattern_variable_counter = ref 0;;
-
-let new_fresh_pattern_variable () =
-  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
-  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
-  Fresh_pattern_variable current_fresh_pattern_variable
-;;
-
-let instantiate_pattern pattern =
-  match pattern with
-  | Forall_pattern (old_pattern_varible, subpattern) ->
-    let new_pattern_variable = new_fresh_pattern_variable () in
-    rename_pattern_variable subpattern new_pattern_variable old_pattern_varible
-  | _ ->
-    pattern
-;;
-
-let instantiate_pattern_set pattern_set =
-  Pattern_set.map instantiate_pattern pattern_set
 ;;
