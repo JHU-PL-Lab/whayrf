@@ -1,0 +1,19 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This example captures the intention of type annotation (assertions) encoded as
+# function pattern matching.
+#
+# Since we don't have integers, this test uses record instead.
+
+g = fun x -> {
+  returnG = x
+};
+f = g ~ fun { int: {} } ~> { { int: {} } } ?
+gMatch -> {
+  returnGMatch = gMatch
+} : gAntimatch -> {
+  bogusFunctionGAntimatch = {};
+  parameterForBogusFunctionGAntimatch = {};
+  returnGAntimatch = bogusFunctionGAntimatch parameterForBogusFunctionGAntimatch  
+};
