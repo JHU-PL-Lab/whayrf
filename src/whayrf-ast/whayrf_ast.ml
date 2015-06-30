@@ -86,13 +86,14 @@ and clause = Clause of var * clause_body
 (** A type to represent expressions. *)
 and expr = Expr of clause list
 
-(** A type representing conditional patterns. *)
+(** A type representing patterns. *)
 and pattern =
   | Record_pattern of pattern Ident_map.t
   | Function_pattern of pattern * pattern
   | Pattern_variable_pattern of pattern_variable
   | Forall_pattern of pattern_variable * pattern
 
+(** A type representing pattern variables. *)
 and pattern_variable =
   | Pattern_variable of ident
   | Fresh_pattern_variable of int
