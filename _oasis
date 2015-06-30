@@ -66,6 +66,7 @@ Library "whayrf-typechecker"
   Modules:
     Whayrf_constraint_closure,
     Whayrf_initial_alignment,
+    Whayrf_notation,
     Whayrf_typechecker,
     Whayrf_types,
     Whayrf_types_pretty
