@@ -3,4 +3,4 @@
 ae = {};
 be = { b = ae };
 a = { a = be };
-b = a ~ { a : {} } ? fun ma -> { rma = {} } : fun aa -> { ac = {}; ad = {}; raa = ac ad };
+b = a ~ { a : {} } ? ma -> { rma = {} } : aa -> { ac = {}; ad = {}; raa = ac ad };

@@ -3,6 +3,6 @@
 re = {};
 e = {l = re};
 # Match {l = {}} with {l : {}}
-c = e ~ {l : {}} ? fun a -> { rra = {}; ra = {y = rra} } : fun b -> { rrb = {}; rb = {n = rrb} };
+c = e ~ {l : {}} ? a -> { rra = {}; ra = {y = rra} } : b -> { rrb = {}; rb = {n = rrb} };
 # Now get stuck if we didn't get a {y = {}}
-t = c ~ {y : {}} ? fun j -> { rj = {} } : fun k -> { r = e e };
+t = c ~ {y : {}} ? j -> { rj = {} } : k -> { r = e e };

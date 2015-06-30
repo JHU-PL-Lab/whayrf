@@ -71,8 +71,8 @@ clause_body:
       { Appl_body($1,$2) }
   | variable DOT identifier
       { Projection_body($1,$3) }
-  | variable TILDE pattern QUESTION_MARK function_value COLON function_value
-      { Conditional_body($1,$3,$5,$7) }
+  | variable TILDE pattern QUESTION_MARK variable ARROW OPEN_BRACE expr CLOSE_BRACE COLON variable ARROW OPEN_BRACE expr CLOSE_BRACE
+      { Conditional_body($1,$3,Function_value($5,$8),Function_value($11,$14)) }
   ;
 
 value:

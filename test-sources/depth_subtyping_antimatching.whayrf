@@ -2,4 +2,4 @@
 # { a: {} } !~ { a: { b: {} } }
 ae = {};
 a = { a = ae };
-b = a ~ { a: { b: {} } } ? fun aa -> { ac = {}; ad = {}; raa = ac ad } : fun ma -> { rma = {} };
+b = a ~ { a: { b: {} } } ? aa -> { ac = {}; ad = {}; raa = ac ad } : ma -> { rma = {} };
