@@ -10,6 +10,15 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
+(** Perform Non-Function Constraint Closure (i.e. the one with the N
+    superscript).
+
+    Most of these functions don't perform a single step, but the fixpoint. They
+    only return the new constraints that can be added to the constraint set, not
+    the already augmented constraint set. This makes it easier to determine when
+    there are no more steps to take (i.e. the closure is finished). *)
+
+(** TRANSITIVITY *)
 let close_by_transitivity constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -21,38 +30,36 @@ let close_by_transitivity constraint_set =
             Restricted_type_lower_bound(restricted_type),
             intermediate_type_variable
           ) ->
-          Some (restricted_type, intermediate_type_variable)
-        | _ -> None
-    )
-  |> Enum.map
-    (
-      fun (restricted_type, intermediate_type_variable) ->
-        constraint_set
-        |> Constraint_set.enum
-        |> Enum.filter_map
-          (
-            fun tconstraint ->
-              match tconstraint with
-              | Lower_bound_constraint(
-                  Type_variable_lower_bound(other_intermediate_type_variable),
-                  final_type_variable
-                ) ->
-                if intermediate_type_variable = other_intermediate_type_variable then
-                  Some (
-                    Lower_bound_constraint(
-                      Restricted_type_lower_bound(restricted_type),
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint(
+                      Type_variable_lower_bound(other_intermediate_type_variable),
                       final_type_variable
-                    )
-                  )
-                else
-                  None
-              | _ -> None
+                    ) ->
+                    if intermediate_type_variable = other_intermediate_type_variable then
+                      Some (
+                        Lower_bound_constraint(
+                          Restricted_type_lower_bound(restricted_type),
+                          final_type_variable
+                        )
+                      )
+                    else
+                      None
+                  | _ -> None
+              )
           )
+        | _ -> None
     )
   |> Enum.concat
   |> Constraint_set.of_enum
 ;;
 
+(** PROJECTION *)
 let close_by_projection constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -80,7 +87,7 @@ let close_by_projection constraint_set =
                           Record_type (record_elements),
                           Type_restriction (
                             Positive_pattern_set (positive_patterns),
-                            _
+                            Negative_pattern_set (negative_patterns)
                           )
                         )
                       ),
@@ -127,8 +134,12 @@ let close_by_projection constraint_set =
                                         Restricted_type (
                                           ttype,
                                           Type_restriction (
-                                            Positive_pattern_set (projected_patterns),
-                                            Negative_pattern_set (Pattern_set.empty)
+                                            Positive_pattern_set (
+                                              Pattern_set.union
+                                                positive_patterns
+                                                projected_patterns
+                                            ),
+                                            Negative_pattern_set (negative_patterns)
                                           )
                                         )
                                       ),
@@ -152,6 +163,7 @@ let close_by_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** APPLICATION *)
 let close_by_application constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -236,6 +248,7 @@ let close_by_application constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** CONDITIONAL SUCCESS *)
 let close_by_conditional_success constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -268,8 +281,8 @@ let close_by_conditional_success constraint_set =
                     Restricted_type (
                       ttype,
                       Type_restriction (
-                        Positive_pattern_set (positive_pattern_set),
-                        Negative_pattern_set (negative_pattern_set)
+                        Positive_pattern_set (positive_patterns),
+                        Negative_pattern_set (negative_patterns)
                       )
                     ) as restricted_type
                   ),
@@ -307,10 +320,10 @@ let close_by_conditional_success constraint_set =
                                   Positive_pattern_set (
                                     Pattern_set.add
                                       pattern
-                                      positive_pattern_set
+                                      positive_patterns
                                   ),
                                   Negative_pattern_set (
-                                    negative_pattern_set
+                                    negative_patterns
                                   )
                                 )
                               )
@@ -338,6 +351,7 @@ let close_by_conditional_success constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** CONDITIONAL FAILURE *)
 let close_by_conditional_failure constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -370,8 +384,8 @@ let close_by_conditional_failure constraint_set =
                     Restricted_type (
                       ttype,
                       Type_restriction (
-                        Positive_pattern_set (positive_pattern_set),
-                        Negative_pattern_set (negative_pattern_set)
+                        Positive_pattern_set (positive_patterns),
+                        Negative_pattern_set (negative_patterns)
                       )
                     ) as restricted_type
                   ),
@@ -407,12 +421,12 @@ let close_by_conditional_failure constraint_set =
                                 ttype,
                                 Type_restriction (
                                   Positive_pattern_set (
-                                    positive_pattern_set
+                                    positive_patterns
                                   ),
                                   Negative_pattern_set (
                                     Pattern_set.add
                                       pattern
-                                      negative_pattern_set
+                                      negative_patterns
                                   )
                                 )
                               )
@@ -440,6 +454,7 @@ let close_by_conditional_failure constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** UNKNOWN APPLICATION *)
 let close_by_unknown_application constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -540,6 +555,7 @@ let close_by_unknown_application constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** UNKNOWN PROJECTION *)
 let close_by_unknown_projection constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -603,6 +619,8 @@ let close_by_unknown_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
+(** Entry point for non-function closure. Perform closure rules until fixpoint
+    is reached. *)
 let rec perform_non_function_closure constraint_set =
   let closure_functions =
     [
