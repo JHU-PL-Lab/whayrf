@@ -11,6 +11,11 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
+(** Function Pattern Search generates constraints based on function patterns.
+    It comes in two flavors, one that takes a restricted type and other that
+    takes a raw type (ttype). *)
+(** FILTERED TYPE *)
+(* Simply ignore the filter. *)
 let rec function_pattern_search_restricted_type
     (Restricted_type (ttype, _))
     constraint_set
@@ -18,6 +23,11 @@ let rec function_pattern_search_restricted_type
   function_pattern_search_ttype ttype constraint_set pattern
 
 and function_pattern_search_ttype ttype constraint_set pattern =
+  (* RECORD *)
+  (* Align the record type with the record pattern and call Function Pattern
+     Search on the type variable under the record label. This implementation
+     doesn't apply the rule once, but performs the fixpoint and returns the set
+     of all constraints that can be added to the constraint set. *)
   match (ttype, pattern) with
   | (
     Record_type (record_elements),
@@ -47,6 +57,10 @@ and function_pattern_search_ttype ttype constraint_set pattern =
       )
     |> Enum.fold Constraint_set.union Constraint_set.empty
 
+  (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
+  (* These rules are almost identical, so they share most of the code. The only
+     difference is in the kind of constraint that is generated, based on the
+     consistency of the resulting constraint closure. *)
   | (
     Function_type_type (
       Function_type (
@@ -114,6 +128,10 @@ and function_pattern_search_ttype ttype constraint_set pattern =
   | _ ->
     Constraint_set.empty
 
+(* TYPE SELECTION *)
+(* This implementation doesn't apply the rule once, but performs the fixpoint
+   and returns the set of all constraints that can be added to the constraint
+   set. *)
 and function_pattern_search_type_variable type_variable constraint_set pattern =
   constraint_set
   |> Constraint_set.enum
