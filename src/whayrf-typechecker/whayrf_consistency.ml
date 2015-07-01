@@ -9,6 +9,8 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
+(** Perform inconsistency checks. This function doesn't perform a single step of
+    the checks, but the fixpoint. *)
 let is_inconsistent constraint_set =
   constraint_set
   |> Constraint_set.enum
@@ -26,6 +28,8 @@ let is_inconsistent constraint_set =
                 (
                   fun tconstraint_3 ->
                     match (tconstraint_1, tconstraint_2, tconstraint_3) with
+
+                    (* APPLICATION FAILURE and UNKNOWN APPLICATION FAILURE *)
                     | (
                       Lower_bound_constraint (
                         Application_lower_bound (function_type_variable, parameter_type_variable),
@@ -86,6 +90,7 @@ let is_inconsistent constraint_set =
                         | _ -> true
                       )
 
+                    (* PROJECTION FAILURE *)
                     | (
                       Lower_bound_constraint (
                         Projection_lower_bound (record_type_variable, label),
@@ -126,6 +131,7 @@ let is_inconsistent constraint_set =
                          )
                       )
 
+                    (* UPPER-BOUNDING PATTERN *)
                     | (
                       Type_variable_constraint (type_variable, pattern),
                       _,
