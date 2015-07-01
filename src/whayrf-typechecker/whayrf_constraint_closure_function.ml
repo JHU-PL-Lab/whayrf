@@ -14,8 +14,8 @@ open Whayrf_utils;;
 
 (** Perform Function Constraint Closure (i.e. the one with the F superscript).
 
-    This function doesn't perform a single step, but the fixpoint. This returns
-    the augmented constraint set with the new constraints as well as the
+    This function doesn't perform a single step, but the fixpoint (omega). This
+    returns the augmented constraint set with the new constraints as well as the
     original constraints. *)
 
 (** FUNCTION CLOSURE *)

@@ -13,7 +13,15 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
+
+(** Perform Constraint Closure (i.e. the one with no superscript).
+
+    This function doesn't perform a single step, but the fixpoint (omega). This
+    returns the augmented constraint set with the new constraints as well as the
+    original constraints. *)
 let rec perform_closure constraint_set =
+  (* The order in which operations happen here is fundamental for the correct
+     behavior of the program. *)
   let closure_functions =
     [
       perform_non_function_closure;

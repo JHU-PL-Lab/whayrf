@@ -620,9 +620,11 @@ let close_by_unknown_projection constraint_set =
 ;;
 
 (** Entry point for non-function closure. Perform closure rules until fixpoint
-    is reached. This returns the augmented constraint set with the new
+    (omega) is reached. This returns the augmented constraint set with the new
     constraints as well as the original constraints. *)
 let rec perform_non_function_closure constraint_set =
+  (* The order in which operations happen here is irrelevant for the correct
+       behavior of the program. *)
   let closure_functions =
     [
       close_by_transitivity;
