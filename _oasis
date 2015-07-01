@@ -72,6 +72,7 @@ Library "whayrf-typechecker"
     Whayrf_function_pattern_search,
     Whayrf_initial_alignment,
     Whayrf_notation,
+    Whayrf_pattern_constraint_solver,
     Whayrf_pattern_subsumption,
     Whayrf_type_compatibility,
     Whayrf_typechecker,

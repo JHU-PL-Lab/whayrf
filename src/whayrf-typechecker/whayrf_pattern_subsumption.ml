@@ -10,6 +10,14 @@ open Whayrf_utils;;
 (** Implements the Pattern Subsumption rules which determines if a pattern is
     compatible with every type that another pattern would be compatible. *)
 let rec is_subsumption_pattern pattern_1 pattern_2 =
+  (* TODO: 1. Digest constraints.
+              Catch Contradiction_found then false.
+              If empty pattern constraint set then true.
+              Otherwise...
+           2. Transitively close.
+           3. Delete all constraints with wobbly vars.
+           4. Goto 1.
+*)
   match (pattern_1, pattern_2) with
   (* RECORD *)
   | (
