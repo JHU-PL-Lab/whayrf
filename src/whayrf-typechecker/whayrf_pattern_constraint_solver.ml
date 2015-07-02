@@ -82,10 +82,10 @@ let rec substitute_augmented_pattern_variable
         )
         augmented_pattern_elements
     )
-  | Function_pattern (function_augmented_pattern, parameter_augmented_pattern) ->
+  | Function_pattern (parameter_augmented_pattern, return_augmented_pattern) ->
     Function_pattern (
-      substitute_augmented_pattern_variable function_augmented_pattern new_augmented_pattern old_augmented_pattern_variable,
-      substitute_augmented_pattern_variable parameter_augmented_pattern new_augmented_pattern old_augmented_pattern_variable
+      substitute_augmented_pattern_variable parameter_augmented_pattern new_augmented_pattern old_augmented_pattern_variable,
+      substitute_augmented_pattern_variable return_augmented_pattern new_augmented_pattern old_augmented_pattern_variable
     )
   | Pattern_variable_pattern (this_augmented_pattern_variable) ->
     if this_augmented_pattern_variable = old_augmented_pattern_variable then
@@ -104,7 +104,8 @@ let rec substitute_augmented_pattern_variable
           new_augmented_pattern
           old_augmented_pattern_variable
       )
-  | Rigid_pattern_variable _ | Wobbly_pattern_variable _ ->
+  | Rigid_pattern_variable _
+  | Wobbly_pattern_variable _ ->
     augmented_pattern
 ;;
 
@@ -115,10 +116,10 @@ let rec augment_pattern pattern =
     Record_pattern (
       Ident_map.map augment_pattern pattern_elements
     )
-  | Whayrf_ast.Function_pattern (function_pattern, parameter_pattern) ->
+  | Whayrf_ast.Function_pattern (parameter_pattern, return_pattern) ->
     Function_pattern (
-      augment_pattern function_pattern,
-      augment_pattern parameter_pattern
+      augment_pattern parameter_pattern,
+      augment_pattern return_pattern
     )
   | Whayrf_ast.Pattern_variable_pattern (pattern_variable) ->
     Pattern_variable_pattern (pattern_variable)
@@ -247,6 +248,7 @@ let digest pattern_constraint_set =
             Pattern_constraint (renamed_pattern, augmented_pattern_2)
           )
 
+        (* WOBBLY VARIABLES *)
         (* Ignore wobbly pattern variables, they pass right through the
            digestion unchanged (gross!). *)
         | (
@@ -259,6 +261,9 @@ let digest pattern_constraint_set =
         ) ->
           Pattern_constraint_set.singleton pattern_constraint
 
+        (* PATTERN VARIABLES *)
+        (* If they show up here, instead of being consumed by the FORALL INTRO
+           and FORALL ELIM rules, that signals a problem. *)
         | (
           Pattern_variable_pattern _,
           _
@@ -350,7 +355,6 @@ let rec perform_transitive_pattern_closure pattern_constraint_set =
 ;;
 
 (** Filter out the pattern constraints that include a wobbly variable. *)
-
 let filter_out_wobbly_variables pattern_constraint_set =
   pattern_constraint_set
   |> Pattern_constraint_set.enum
