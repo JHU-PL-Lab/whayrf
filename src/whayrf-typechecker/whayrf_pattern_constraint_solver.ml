@@ -3,8 +3,23 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_utils;;
 
+(** The FORALL ELIM Pattern Subsumption rule requires the implementation to pick
+    a pattern to substitute for the pattern variable. In order to pick the right
+    pattern, we need a kind of Hindley-Milner Type System with Let Polymorphism
+    for the pattern variables.
+
+    We perform a constraint closure with the purpose of unifying the pattern
+    variables with patterns that enable a proof to be build. *)
+
+(** Exception used to control flow of pattern constraint closure execution. This
+    is necessary because we build new constraints and check for inconsistencies
+    along the way. If we happen to find an inconsistent constraint, we give up
+    on the task entirely and return early. *)
 exception Contradiction_found;;
 
+(** Supertype of pattern that includes Rigid and Wobbly variables. Rigid
+    variables are those that "the adversary" has chosen for us. Wobbly variables
+    we can pick to conform to expectations and make the proofs possible. *)
 type augmented_pattern =
   | Record_pattern of augmented_pattern Ident_map.t
   | Function_pattern of augmented_pattern * augmented_pattern
@@ -14,6 +29,8 @@ type augmented_pattern =
   | Wobbly_pattern_variable of int
 ;;
 
+(** Pattern constraints are pairs of augmented_patterns that represent a "is
+    subsumed by" relation. *)
 type pattern_constraint =
   | Pattern_constraint of augmented_pattern * augmented_pattern
 ;;
@@ -50,22 +67,25 @@ let new_wobbly_pattern_variable () =
 ;;
 
 (** Perform substitution on augmented_patterns. It's the operation represented by
-    $\pi\[\beta \ \beta'\]$. A.k.a. alpha substitution. *)
-let rec rename_augmented_pattern_variable augmented_pattern new_augmented_pattern old_augmented_pattern_variable =
+    $\pi\[\pi' \ \beta\]$. A.k.a. alpha substitution. *)
+let rec substitute_augmented_pattern_variable
+    augmented_pattern
+    new_augmented_pattern
+    old_augmented_pattern_variable =
   match augmented_pattern with
   | Record_pattern (augmented_pattern_elements) ->
     Record_pattern (
       Ident_map.map
         (
           fun subaugmented_pattern ->
-            rename_augmented_pattern_variable subaugmented_pattern new_augmented_pattern old_augmented_pattern_variable
+            substitute_augmented_pattern_variable subaugmented_pattern new_augmented_pattern old_augmented_pattern_variable
         )
         augmented_pattern_elements
     )
   | Function_pattern (function_augmented_pattern, parameter_augmented_pattern) ->
     Function_pattern (
-      rename_augmented_pattern_variable function_augmented_pattern new_augmented_pattern old_augmented_pattern_variable,
-      rename_augmented_pattern_variable parameter_augmented_pattern new_augmented_pattern old_augmented_pattern_variable
+      substitute_augmented_pattern_variable function_augmented_pattern new_augmented_pattern old_augmented_pattern_variable,
+      substitute_augmented_pattern_variable parameter_augmented_pattern new_augmented_pattern old_augmented_pattern_variable
     )
   | Pattern_variable_pattern (this_augmented_pattern_variable) ->
     if this_augmented_pattern_variable = old_augmented_pattern_variable then
@@ -79,7 +99,7 @@ let rec rename_augmented_pattern_variable augmented_pattern new_augmented_patter
     else
       Forall_pattern (
         old_augmented_pattern_variable,
-        rename_augmented_pattern_variable
+        substitute_augmented_pattern_variable
           subaugmented_pattern
           new_augmented_pattern
           old_augmented_pattern_variable
@@ -88,6 +108,7 @@ let rec rename_augmented_pattern_variable augmented_pattern new_augmented_patter
     augmented_pattern
 ;;
 
+(** Promotes a regular pattern to an augmented_pattern. *)
 let rec augment_pattern pattern =
   match pattern with
   | Whayrf_ast.Record_pattern (pattern_elements) ->
@@ -105,6 +126,8 @@ let rec augment_pattern pattern =
     Forall_pattern (pattern_variable, augment_pattern subpattern)
 ;;
 
+(** Performs the initial alignment between a pair of patterns to an augmented
+    pattern constraint. *)
 let initial_alignment pattern_1 pattern_2 =
   Pattern_constraint_set.singleton @@
   Pattern_constraint (
@@ -113,12 +136,27 @@ let initial_alignment pattern_1 pattern_2 =
   )
 ;;
 
+(** Traverse the pattern constraint consuming the constraints, generating new
+    constraints and raising Contradiction_found in case a contradiction was
+    found on the pattern constraint set.
+
+    Callers of this function should catch the Contradiction_found exception that
+    is only used for flow control.
+
+    This is where the bulk of the Pattern Subsumption rules is implemented. *)
 let digest pattern_constraint_set =
   pattern_constraint_set
   |> Pattern_constraint_set.enum
   |> Enum.map
     (
-      fun ((Pattern_constraint (augmented_pattern_1, augmented_pattern_2)) as pattern_constraint) ->
+      fun (
+        (
+          Pattern_constraint (
+            augmented_pattern_1,
+            augmented_pattern_2
+          )
+        ) as pattern_constraint
+      ) ->
         match (augmented_pattern_1, augmented_pattern_2) with
         (* RECORD *)
         | (
@@ -175,13 +213,16 @@ let digest pattern_constraint_set =
             raise Contradiction_found
 
         (* FORALL INTRO *)
+        (* It's important for the correct behavior of the program that FORALL
+           INTRO is tried before FORALL ELIM because variables need to be
+           introduced before they can be analyzed. *)
         | (
           _,
           Forall_pattern (old_pattern_variable, sub_pattern_2)
         ) ->
           let new_pattern_variable = new_rigid_pattern_variable () in
           let renamed_pattern =
-            rename_augmented_pattern_variable
+            substitute_augmented_pattern_variable
               sub_pattern_2
               new_pattern_variable
               old_pattern_variable
@@ -197,7 +238,7 @@ let digest pattern_constraint_set =
         ) ->
           let new_pattern_variable = new_wobbly_pattern_variable () in
           let renamed_pattern =
-            rename_augmented_pattern_variable
+            substitute_augmented_pattern_variable
               sub_pattern_1
               new_pattern_variable
               old_pattern_variable
@@ -206,7 +247,8 @@ let digest pattern_constraint_set =
             Pattern_constraint (renamed_pattern, augmented_pattern_2)
           )
 
-        (* Ignore wobbly pattern variables*)
+        (* Ignore wobbly pattern variables, they pass right through the
+           digestion unchanged (gross!). *)
         | (
           Wobbly_pattern_variable _,
           _
@@ -225,15 +267,14 @@ let digest pattern_constraint_set =
           _,
           Pattern_variable_pattern _
         ) ->
-          raise @@ Invariant_failure "All regular pattern variables should be properly quantified. Either there's a problem on the pattern, or you (i.e. my) substitution function is wrong."
+          raise @@ Invariant_failure "All regular pattern variables should be properly quantified. Either there's a problem on the pattern, or your (i.e. my) substitution function is wrong."
 
-        (* Fallback *)
+        (* Fallback. If we can't apply any of those rules, there's something
+           wrong with the constraint. *)
         | _ -> raise Contradiction_found
     )
   |> Enum.fold Pattern_constraint_set.union Pattern_constraint_set.empty
 ;;
-
-(* TODO: Implement from here on. *)
 
 (** Perform Pattern Constraint Closure (i.e. the one that is NOT on the paper).
 
