@@ -1,15 +1,19 @@
 open Batteries;;
 
 open Whayrf_ast;;
+open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
 open Whayrf_constraint_closure_non_function;;
 open Whayrf_initial_alignment;;
+open Whayrf_logger;;
 open Whayrf_notation;;
 open Whayrf_pattern_subsumption;;
 open Whayrf_type_compatibility;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
+
+let logger = make_logger "Whayrf_function_pattern_search";;
 
 (** Function Pattern Search generates constraints based on function patterns.
     It comes in two flavors, one that takes a restricted type and other that
@@ -125,6 +129,7 @@ and function_pattern_search_ttype ttype constraint_set pattern =
       )
     in
     Constraint_set.add new_constraint Constraint_set.empty
+
   | _ ->
     Constraint_set.empty
 
@@ -133,6 +138,7 @@ and function_pattern_search_ttype ttype constraint_set pattern =
    and returns the set of all constraints that can be added to the constraint
    set. *)
 and function_pattern_search_type_variable type_variable constraint_set pattern =
+  logger `trace ("Looking for type variable `" ^ pretty_type_variable type_variable ^ "' in the constraint set: `"  ^ pretty_constraint_set constraint_set ^ "', and matching it with pattern `" ^ pretty_pattern pattern ^ "'.");
   constraint_set
   |> Constraint_set.enum
   |> Enum.filter_map

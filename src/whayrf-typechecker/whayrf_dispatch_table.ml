@@ -1,17 +1,21 @@
 open Batteries;;
 
 open Whayrf_ast;;
+open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
 open Whayrf_constraint_closure_function;;
 open Whayrf_constraint_closure_non_function;;
 open Whayrf_function_pattern_search;;
 open Whayrf_initial_alignment;;
+open Whayrf_logger;;
 open Whayrf_notation;;
 open Whayrf_pattern_subsumption;;
 open Whayrf_type_compatibility;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
+
+let logger = make_logger "Whayrf_dispatch_table";;
 
 let rec unfreshen_function_value (Function_value (parameter, body)) =
   Function_value (
@@ -112,7 +116,12 @@ let build_dispatch_table constraint_set =
         if is_match then
           true
         else
+          (
+            logger `fatal ("Function type: `" ^ pretty_function_type function_type ^ "'.");
+            logger `fatal ("Pattern: `" ^ pretty_pattern pattern ^ "'.");
+            logger `fatal ("Constraint set: `" ^ pretty_constraint_set constraint_set ^ "'.");
           raise (Invariant_failure "Function pattern matching constraint absent (function_type +~ pattern or function_type -~ pattern) from negative pattern set should be present in positive pattern set.")
+          )
     | _ ->
       raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
 ;;
