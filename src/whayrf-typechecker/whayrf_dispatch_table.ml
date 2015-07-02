@@ -112,7 +112,7 @@ let build_dispatch_table constraint_set =
         if is_match then
           true
         else
-          raise (Invariant_failure "Constraint absent from negative pattern set should be present in positive pattern set.")
+          raise (Invariant_failure "Function pattern matching constraint absent (function_type +~ pattern or function_type -~ pattern) from negative pattern set should be present in positive pattern set.")
     | _ ->
       raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
 ;;
