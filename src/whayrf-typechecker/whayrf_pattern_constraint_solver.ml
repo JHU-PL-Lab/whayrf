@@ -281,41 +281,94 @@ let digest pattern_constraint_set =
     This function doesn't perform a single step, but the fixpoint (omega). This
     returns the augmented pattern constraint set with the new constraints as
     well as the original constraints. *)
-(* let rec perform_closure constraint_set = *)
-(*   (\* The order in which operations happen here is fundamental for the correct *)
-(*      behavior of the program. *\) *)
-(*   let closure_functions = *)
-(*     [ *)
-(*       perform_non_function_closure; *)
-(*       perform_function_closure *)
-(*     ] *)
-(*   in *)
-(*   let augmented_constraint_set = *)
-(*     List.fold_left *)
-(*       ( *)
-(*         fun partially_augmented_constraint_set closure_function -> *)
-(*           let inferred_constraints = closure_function partially_augmented_constraint_set in *)
-(*           Constraint_set.union partially_augmented_constraint_set inferred_constraints *)
-(*       ) *)
-(*       constraint_set *)
-(*       closure_functions *)
-(*   in *)
-(* DONT COMPARE FOR SIZE. SERIOUSLY! *)
-(*   if (Enum.count (Constraint_set.enum constraint_set)) <> *)
-(*      (Enum.count (Constraint_set.enum augmented_constraint_set)) then *)
-(*     perform_closure augmented_constraint_set *)
-(*   else *)
-(*     augmented_constraint_set *)
-(* ;; *)
+let rec perform_pattern_constraint_closure pattern_constraint_set =
+  let digested_constraint_set =
+    Pattern_constraint_set.union pattern_constraint_set @@ digest pattern_constraint_set
+  in
+  if pattern_constraint_set <> digested_constraint_set then
+    perform_pattern_constraint_closure digested_constraint_set
+  else
+    digested_constraint_set
+;;
 
-(** Transitive closure of wobbly variables. Introduce new pattern constraints. Run to fixpoint. *)
+(** Close wobbly variables by transitivity.
 
-(* It's just a pair of nested loops. *)
+    Returns the pattern constraint set with the rules to be added. *)
+let close_by_transitivity pattern_constraint_set =
+  pattern_constraint_set
+  |> Pattern_constraint_set.enum
+  |> Enum.map
+    (
+      fun pattern_constraint_1 ->
+        pattern_constraint_set
+        |> Pattern_constraint_set.enum
+        |> Enum.filter_map
+          (
+            fun pattern_constraint_2 ->
+              match (pattern_constraint_1, pattern_constraint_2) with
+              (* TRANSITIVITY *)
+              | (
+                Pattern_constraint (
+                  augmented_pattern_left_1, Wobbly_pattern_variable(wobbly_count_right_1)
+                ),
+                Pattern_constraint (
+                  Wobbly_pattern_variable(wobbly_count_left_2), augmented_pattern_right_2
+                )
+              ) ->
+                if wobbly_count_right_1 = wobbly_count_left_2 then
+                  Some (
+                    Pattern_constraint (
+                      augmented_pattern_left_1, augmented_pattern_right_2
+                    )
+                  )
+                else
+                  None
 
-(* let transitive_pattern_closure pattern_constraint_set : Pattern_constraint_set -> Pattern_constraint_set = *)
+              (* Fallback. *)
+              | _ ->
+                None
+          )
+        |> Pattern_constraint_set.of_enum
+    )
+  |> Enum.fold Pattern_constraint_set.union Pattern_constraint_set.empty
+;;
 
-(* ;; *)
+(** Transitive closure of wobbly variables. It introduces new pattern
+    constraints and runs to the fixpoint of the operation, instead of a single
+    step.
+
+    Returns the pattern constraint set with the original rules as well as the
+    ones that were added. *)
+let rec transitive_pattern_closure pattern_constraint_set =
+  let augmented_constraint_set =
+    Pattern_constraint_set.union pattern_constraint_set @@ close_by_transitivity pattern_constraint_set
+  in
+  if pattern_constraint_set <> augmented_constraint_set then
+    transitive_pattern_closure augmented_constraint_set
+  else
+    augmented_constraint_set
+;;
 
 (** Filter out the pattern constraints that include a wobbly variable. *)
 
-(** The entry point for pattern constraint solver. *)
+let filter_out_wobbly_variables pattern_constraint_set =
+  pattern_constraint_set
+  |> Pattern_constraint_set.enum
+  |> Enum.filter
+    (
+      fun pattern_constraint ->
+        match pattern_constraint with
+        | Pattern_constraint (
+            Wobbly_pattern_variable (_),
+            _
+          )
+        | Pattern_constraint (
+            _,
+            Wobbly_pattern_variable (_)
+          )
+          ->
+          false
+        | _ -> true
+    )
+  |> Pattern_constraint_set.of_enum
+;;
