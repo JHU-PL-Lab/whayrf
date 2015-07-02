@@ -279,11 +279,11 @@ let digest pattern_constraint_set =
 (** Perform Pattern Constraint Closure (i.e. the one that is NOT on the paper).
 
     This function doesn't perform a single step, but the fixpoint (omega). This
-    returns the augmented pattern constraint set with the new constraints as
-    well as the original constraints. *)
+    returns the pattern constraint set with the new constraints but not the old
+    ones. *)
 let rec perform_pattern_constraint_closure pattern_constraint_set =
   let digested_constraint_set =
-    Pattern_constraint_set.union pattern_constraint_set @@ digest pattern_constraint_set
+    digest pattern_constraint_set
   in
   if pattern_constraint_set <> digested_constraint_set then
     perform_pattern_constraint_closure digested_constraint_set
@@ -339,12 +339,12 @@ let close_by_transitivity pattern_constraint_set =
 
     Returns the pattern constraint set with the original rules as well as the
     ones that were added. *)
-let rec transitive_pattern_closure pattern_constraint_set =
+let rec perform_transitive_pattern_closure pattern_constraint_set =
   let augmented_constraint_set =
     Pattern_constraint_set.union pattern_constraint_set @@ close_by_transitivity pattern_constraint_set
   in
   if pattern_constraint_set <> augmented_constraint_set then
-    transitive_pattern_closure augmented_constraint_set
+    perform_transitive_pattern_closure augmented_constraint_set
   else
     augmented_constraint_set
 ;;
