@@ -1,0 +1,17 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+f = fun x -> {
+  returnF = fun y -> {
+    returnInnerF = {}
+  }
+};
+
+return = f ~ fun {} ~> { fun {} ~> { { inexistentLabel: {} } } } ?
+  fMatch -> {
+    bogusFunctionFMatch = {};
+    parameterForBogusFunctionFMatch = {};
+    returnFMatch = bogusFunctionFMatch parameterForBogusFunctionFMatch
+  } : fAntimatch -> {
+    returnAntimatch = {}
+  };
