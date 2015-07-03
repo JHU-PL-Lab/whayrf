@@ -143,7 +143,7 @@ let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variabl
       pattern
     else
       Forall_pattern (
-        new_pattern_variable,
+        this_pattern_variable,
         rename_pattern_variable
           subpattern
           new_pattern_variable
