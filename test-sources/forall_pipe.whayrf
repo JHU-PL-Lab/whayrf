@@ -1,5 +1,5 @@
 # EXPECT-TYPECHECK
-## EXPECT-EVALUATE
+# EXPECT-EVALUATE
 
 # This example captures the meaning of the pipe operator |>.
 # val (|>) : 'a -> ('a -> 'b) -> 'b
