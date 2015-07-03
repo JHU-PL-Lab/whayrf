@@ -1,0 +1,21 @@
+# EXPECT-TYPECHECK
+## EXPECT-EVALUATE
+
+# This example captures the meaning of the pipe operator |>.
+# val (|>) : 'a -> ('a -> 'b) -> 'b
+
+
+pipe = fun parameter -> {
+  returnPipe = fun pipedFunction -> {
+    returnPipedFunction = pipedFunction parameter
+  }
+};
+
+return = pipe ~ forall beta. forall otherBeta. fun beta ~> { fun fun beta ~> { otherBeta } ~> { otherBeta } } ?
+  pipeMatch -> {
+    returnPipeMatch = {}
+  } : pipeAntimatch -> {
+    bogusFunctionPipeAntimatch = {};
+    parameterForBogusFunctionPipeAntimatch = {};
+    returnPipeAntimatch = bogusFunctionPipeAntimatch parameterForBogusFunctionPipeAntimatch
+  }
