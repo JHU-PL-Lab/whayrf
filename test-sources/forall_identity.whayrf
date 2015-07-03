@@ -1,5 +1,5 @@
 # EXPECT-TYPECHECK
-# EXPECT-EVALUATE
+## EXPECT-EVALUATE
 
 identity = fun a -> { returnIdentity = a };
 return = identity ~ forall beta. fun beta ~> { beta } ?
