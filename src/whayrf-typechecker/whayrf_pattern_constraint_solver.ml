@@ -207,6 +207,10 @@ let digest pattern_constraint_set =
         | (
           Rigid_pattern_variable _,
           Rigid_pattern_variable _
+        )
+        | (
+          Pattern_variable_pattern _,
+          Pattern_variable_pattern _
         ) ->
           if augmented_pattern_1 = augmented_pattern_2 then
             Pattern_constraint_set.empty
@@ -260,19 +264,6 @@ let digest pattern_constraint_set =
           Wobbly_pattern_variable _
         ) ->
           Pattern_constraint_set.singleton pattern_constraint
-
-        (* PATTERN VARIABLES *)
-        (* If they show up here, instead of being consumed by the FORALL INTRO
-           and FORALL ELIM rules, that signals a problem. *)
-        | (
-          Pattern_variable_pattern _,
-          _
-        )
-        | (
-          _,
-          Pattern_variable_pattern _
-        ) ->
-          raise @@ Invariant_failure "All regular pattern variables should be properly quantified. Either there's a problem on the pattern, or your (i.e. my) substitution function is wrong."
 
         (* Fallback. If we can't apply any of those rules, there's something
            wrong with the constraint. *)

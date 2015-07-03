@@ -8,23 +8,6 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Implement INST function used by FORALL rule. *)
-
-(** For single patterns. *)
-let instantiate_pattern pattern =
-  match pattern with
-  | Forall_pattern (old_pattern_varible, subpattern) ->
-    let new_pattern_variable = new_fresh_pattern_variable () in
-    rename_pattern_variable subpattern new_pattern_variable old_pattern_varible
-  | _ ->
-    pattern
-;;
-
-(** And for pattern sets. *)
-let instantiate_pattern_set pattern_set =
-  Pattern_set.map instantiate_pattern pattern_set
-;;
-
 (** Implement Type Compatibility rules. There are three kinds of rules, those
     that work on restricted types, those that works on raw types (ttype) and
     those that work on type variables. *)
@@ -125,17 +108,6 @@ and is_compatible_ttype
       |> Pattern_set.of_enum
     in
 
-    (* FORALL *)
-
-    (* As well as the VARIABLE rule above, this rule is a kind of operation on
-       pattern sets. In this case, a map, which is performed by instantiating
-       FORALL patterns in the pattern sets. *)
-    let positive_patterns =
-      instantiate_pattern_set positive_patterns
-    in
-    let negative_patterns =
-      instantiate_pattern_set negative_patterns
-    in
     match ttype with
 
     (* RECORD *)

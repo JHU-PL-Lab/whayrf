@@ -16,51 +16,10 @@ open Whayrf_utils;;
 let logger = make_logger "Whayrf_function_pattern_search";;
 
 (** Function Pattern Search generates constraints based on function patterns.
-    It comes in two flavors, one that takes a restricted type and other that
-    takes a raw type (ttype). *)
-(** FILTERED TYPE *)
-(* Simply ignore the filter. *)
-let rec function_pattern_search_restricted_type
-    (Restricted_type (ttype, _))
-    constraint_set
-    pattern =
-  function_pattern_search_ttype ttype constraint_set pattern
-
-and function_pattern_search_ttype ttype constraint_set pattern =
-  (* RECORD *)
-  (* Align the record type with the record pattern and call Function Pattern
-     Search on the type variable under the record label. This implementation
-     doesn't apply the rule once, but performs the fixpoint and returns the set
-     of all constraints that can be added to the constraint set. *)
+    It comes in three flavors, one that takes a raw type (ttype), one that takes
+    a restricted type and another that takes a type variable. *)
+let rec function_pattern_search_ttype ttype constraint_set pattern =
   match (ttype, pattern) with
-  | (
-    Record_type (record_elements),
-    Record_pattern (pattern_elements)
-  ) ->
-    record_elements
-    |> Ident_map.enum
-    |> Enum.map
-      (
-        fun (record_label, type_variable) ->
-          pattern_elements
-          |> Ident_map.enum
-          |> Enum.filter_map
-            (
-              fun (pattern_label, pattern) ->
-                if record_label = pattern_label then
-                  Some (
-                    function_pattern_search_type_variable
-                      type_variable
-                      constraint_set
-                      pattern
-                  )
-                else
-                  None
-            )
-          |> Enum.fold Constraint_set.union Constraint_set.empty
-      )
-    |> Enum.fold Constraint_set.union Constraint_set.empty
-
   (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
   (* These rules are almost identical, so they share most of the code. The only
      difference is in the kind of constraint that is generated, based on the
@@ -128,12 +87,128 @@ and function_pattern_search_ttype ttype constraint_set pattern =
           )
       )
     in
-    Constraint_set.add new_constraint Constraint_set.empty
+    (
+      logger `trace ("The constraint set being close over for function pattern search is: " ^ pretty_constraint_set constraint_set_to_test);
+      Constraint_set.add new_constraint Constraint_set.empty
+    )
+
+  (* FORALL *)
+  | (
+    Function_type_type (
+      function_type
+    ),
+    Forall_pattern (
+      old_pattern_variable,
+      inner_pattern
+    )
+  ) ->
+    let new_pattern_variable = new_fresh_pattern_variable () in
+    let renamed_inner_pattern =
+      rename_pattern_variable
+        inner_pattern
+        new_pattern_variable
+        old_pattern_variable
+    in
+    function_pattern_search_ttype
+      ttype
+      constraint_set
+      renamed_inner_pattern
+    |> Constraint_set.map
+      (
+        fun tconstraint ->
+          match tconstraint with
+          | Function_pattern_matching_constraint (
+              Function_pattern_matching_constraint_positive (
+                other_function_type,
+                subpattern
+              )
+            ) ->
+            if function_type = other_function_type then
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_positive (
+                  function_type,
+                  Forall_pattern (
+                    old_pattern_variable,
+                    rename_pattern_variable
+                      subpattern
+                      old_pattern_variable
+                      new_pattern_variable
+                  )
+                )
+              )
+            else
+              tconstraint
+
+          | Function_pattern_matching_constraint (
+              Function_pattern_matching_constraint_negative (
+                other_function_type,
+                subpattern
+              )
+            ) ->
+            if function_type = other_function_type then
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_negative (
+                  function_type,
+                  Forall_pattern (
+                    old_pattern_variable,
+                    rename_pattern_variable
+                      subpattern
+                      old_pattern_variable
+                      new_pattern_variable
+                  )
+                )
+              )
+            else
+              tconstraint
+          | _ ->
+            tconstraint
+      )
+
+  (* RECORD *)
+  (* Align the record type with the record pattern and call Function Pattern
+     Search on the type variable under the record label. This implementation
+     doesn't apply the rule once, but performs the fixpoint and returns the set
+     of all constraints that can be added to the constraint set. *)
+  | (
+    Record_type (record_elements),
+    Record_pattern (pattern_elements)
+  ) ->
+    record_elements
+    |> Ident_map.enum
+    |> Enum.map
+      (
+        fun (record_label, type_variable) ->
+          pattern_elements
+          |> Ident_map.enum
+          |> Enum.filter_map
+            (
+              fun (pattern_label, pattern) ->
+                if record_label = pattern_label then
+                  Some (
+                    function_pattern_search_type_variable
+                      type_variable
+                      constraint_set
+                      pattern
+                  )
+                else
+                  None
+            )
+          |> Enum.fold Constraint_set.union Constraint_set.empty
+      )
+    |> Enum.fold Constraint_set.union Constraint_set.empty
 
   | _ ->
     Constraint_set.empty
 
-(* TYPE SELECTION *)
+(** FILTERED TYPE *)
+(* Simply ignore the filter. *)
+and function_pattern_search_restricted_type
+    (Restricted_type (ttype, _))
+    constraint_set
+    pattern =
+  function_pattern_search_ttype ttype constraint_set pattern
+
+(** TYPE SELECTION *)
 (* This implementation doesn't apply the rule once, but performs the fixpoint
    and returns the set of all constraints that can be added to the constraint
    set. *)
