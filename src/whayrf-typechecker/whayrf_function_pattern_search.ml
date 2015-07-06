@@ -3,7 +3,6 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
-open Whayrf_constraint_closure_non_function;;
 open Whayrf_initial_alignment;;
 open Whayrf_logger;;
 open Whayrf_notation;;
@@ -18,7 +17,7 @@ let logger = make_logger "Whayrf_function_pattern_search";;
 (** Function Pattern Search generates constraints based on function patterns.
     It comes in three flavors, one that takes a raw type (ttype), one that takes
     a restricted type and another that takes a type variable. *)
-let rec function_pattern_search_ttype ttype constraint_set pattern =
+let rec function_pattern_search_ttype perform_closure ttype constraint_set pattern =
   match (ttype, pattern) with
   (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
   (* These rules are almost identical, so they share most of the code. The only
@@ -39,58 +38,78 @@ let rec function_pattern_search_ttype ttype constraint_set pattern =
       return_pattern
     )
   ) ->
-    let additional_constraints_to_test = Constraint_set.of_enum @@ List.enum [
-        Lower_bound_constraint (
-          Restricted_type_lower_bound (
-            Restricted_type (
-              Unknown_type,
-              Type_restriction (
-                Positive_pattern_set (
-                  Pattern_set.add
-                    parameter_pattern
-                    Pattern_set.empty
-                ),
-                Negative_pattern_set (Pattern_set.empty)
+    if not (
+        Constraint_set.mem
+          (
+            Function_pattern_matching_constraint (
+              Function_pattern_matching_constraint_positive (
+                function_type,
+                pattern
               )
             )
-          ),
-          parameter_type_variable
-        );
-        Type_variable_constraint (
-          return_type_variable,
-          return_pattern
+          )
+          constraint_set
+      ) then
+      let additional_constraints_to_test = Constraint_set.of_enum @@ List.enum [
+          Lower_bound_constraint (
+            Restricted_type_lower_bound (
+              Restricted_type (
+                Unknown_type,
+                Type_restriction (
+                  Positive_pattern_set (
+                    Pattern_set.add
+                      parameter_pattern
+                      Pattern_set.empty
+                  ),
+                  Negative_pattern_set (Pattern_set.empty)
+                )
+              )
+            ),
+            parameter_type_variable
+          );
+          Type_variable_constraint (
+            return_type_variable,
+            return_pattern
+          );
+          Function_pattern_matching_constraint (
+            Function_pattern_matching_constraint_positive (
+              function_type,
+              pattern
+            )
+          )
+        ]
+      in
+      let constraint_set_to_test =
+        Constraint_set.union (
+          Constraint_set.union additional_constraints_to_test constraint_set
+        ) body_constraint_set
+      in
+      let closed_constraint_set_to_test =
+        perform_closure constraint_set_to_test
+      in
+      let is_consistent_constraint_set_to_test =
+        is_consistent closed_constraint_set_to_test
+      in
+      let new_constraint =
+        Function_pattern_matching_constraint (
+          if is_consistent_constraint_set_to_test then
+            Function_pattern_matching_constraint_positive (
+              function_type,
+              pattern
+            )
+          else
+            Function_pattern_matching_constraint_negative (
+              function_type,
+              pattern
+            )
         )
-      ]
-    in
-    let constraint_set_to_test =
-      Constraint_set.union (
-        Constraint_set.union additional_constraints_to_test constraint_set
-      ) body_constraint_set
-    in
-    let closed_constraint_set_to_test =
-      perform_non_function_closure constraint_set_to_test
-    in
-    let is_consistent_constraint_set_to_test =
-      is_consistent closed_constraint_set_to_test
-    in
-    let new_constraint =
-      Function_pattern_matching_constraint (
-        if is_consistent_constraint_set_to_test then
-          Function_pattern_matching_constraint_positive (
-            function_type,
-            pattern
-          )
-        else
-          Function_pattern_matching_constraint_negative (
-            function_type,
-            pattern
-          )
+      in
+      (
+        logger `trace ("The constraint set being close over for function pattern search is: " ^ pretty_constraint_set constraint_set_to_test);
+        Constraint_set.singleton new_constraint
       )
-    in
-    (
-      logger `trace ("The constraint set being close over for function pattern search is: " ^ pretty_constraint_set constraint_set_to_test);
-      Constraint_set.add new_constraint Constraint_set.empty
-    )
+    else
+      Constraint_set.empty
 
   (* FORALL *)
   | (
@@ -110,6 +129,7 @@ let rec function_pattern_search_ttype ttype constraint_set pattern =
         old_pattern_variable
     in
     function_pattern_search_ttype
+      perform_closure
       ttype
       constraint_set
       renamed_inner_pattern
@@ -186,6 +206,7 @@ let rec function_pattern_search_ttype ttype constraint_set pattern =
                 if record_label = pattern_label then
                   Some (
                     function_pattern_search_type_variable
+                      perform_closure
                       type_variable
                       constraint_set
                       pattern
@@ -203,16 +224,17 @@ let rec function_pattern_search_ttype ttype constraint_set pattern =
 (** FILTERED TYPE *)
 (* Simply ignore the filter. *)
 and function_pattern_search_restricted_type
+    perform_closure
     (Restricted_type (ttype, _))
     constraint_set
     pattern =
-  function_pattern_search_ttype ttype constraint_set pattern
+  function_pattern_search_ttype perform_closure ttype constraint_set pattern
 
 (** TYPE SELECTION *)
 (* This implementation doesn't apply the rule once, but performs the fixpoint
    and returns the set of all constraints that can be added to the constraint
    set. *)
-and function_pattern_search_type_variable type_variable constraint_set pattern =
+and function_pattern_search_type_variable perform_closure type_variable constraint_set pattern =
   logger `trace ("Looking for type variable `" ^ pretty_type_variable type_variable ^ "' in the constraint set: `"  ^ pretty_constraint_set constraint_set ^ "', and matching it with pattern `" ^ pretty_pattern pattern ^ "'.");
   constraint_set
   |> Constraint_set.enum
@@ -225,7 +247,7 @@ and function_pattern_search_type_variable type_variable constraint_set pattern =
             other_type_variable
           ) ->
           if type_variable = other_type_variable then
-            Some (function_pattern_search_restricted_type restricted_type constraint_set pattern)
+            Some (function_pattern_search_restricted_type perform_closure restricted_type constraint_set pattern)
           else
             None
         | _ -> None

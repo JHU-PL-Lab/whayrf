@@ -622,7 +622,7 @@ let close_by_unknown_projection constraint_set =
 (** Entry point for non-function closure. Perform closure rules until fixpoint
     (omega) is reached. This returns the augmented constraint set with the new
     constraints as well as the original constraints. *)
-let rec perform_non_function_closure constraint_set =
+let rec perform_non_function_closure perform_closure constraint_set =
   (* The order in which operations happen here is irrelevant for the correct
        behavior of the program. *)
   let closure_functions =
@@ -648,7 +648,7 @@ let rec perform_non_function_closure constraint_set =
   in
   if (Enum.count (Constraint_set.enum constraint_set)) <>
      (Enum.count (Constraint_set.enum augmented_constraint_set)) then
-    perform_non_function_closure augmented_constraint_set
+    perform_non_function_closure perform_closure augmented_constraint_set
   else
     augmented_constraint_set
 ;;

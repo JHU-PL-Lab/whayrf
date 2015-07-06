@@ -21,7 +21,7 @@ let logger = make_logger "Whayrf_constraint_closure_function";;
     This function doesn't perform a single step, but the fixpoint (omega). This
     returns the augmented constraint set with the new constraints as well as the
     original constraints. *)
-let perform_function_closure constraint_set =
+let perform_function_closure perform_closure constraint_set =
   let new_constraints =
     constraint_set
     |> Constraint_set.enum
@@ -45,7 +45,7 @@ let perform_function_closure constraint_set =
               type_variable,
               pattern
             ) ->
-            Some (function_pattern_search_type_variable type_variable constraint_set pattern)
+            Some (function_pattern_search_type_variable perform_closure type_variable constraint_set pattern)
           | _ -> None
       )
     |> Enum.fold Constraint_set.union constraint_set

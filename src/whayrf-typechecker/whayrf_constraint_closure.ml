@@ -32,7 +32,7 @@ let rec perform_closure constraint_set =
     List.fold_left
       (
         fun partially_augmented_constraint_set closure_function ->
-          let inferred_constraints = closure_function partially_augmented_constraint_set in
+          let inferred_constraints = closure_function perform_closure partially_augmented_constraint_set in
           Constraint_set.union partially_augmented_constraint_set inferred_constraints
       )
       constraint_set
