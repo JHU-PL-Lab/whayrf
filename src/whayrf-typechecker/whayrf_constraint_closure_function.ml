@@ -21,8 +21,6 @@ let logger = make_logger "Whayrf_constraint_closure_function";;
     This function doesn't perform a single step, but the fixpoint (omega). This
     returns the augmented constraint set with the new constraints as well as the
     original constraints. *)
-
-(** FUNCTION CLOSURE *)
 let perform_function_closure constraint_set =
   let new_constraints =
     constraint_set
@@ -31,16 +29,23 @@ let perform_function_closure constraint_set =
       (
         fun tconstraint ->
           match tconstraint with
+          (* FUNCTION CLOSURE *)
           | Lower_bound_constraint (
               Conditional_lower_bound (
-                subject_type_variable,
+                type_variable,
                 pattern,
                 _,
                 _
               ),
               _
+            )
+
+          (* FUNCTION CLOSURE (UPPER BOUNDING PATTERN) *)
+          | Type_variable_constraint (
+              type_variable,
+              pattern
             ) ->
-            Some (function_pattern_search_type_variable subject_type_variable constraint_set pattern)
+            Some (function_pattern_search_type_variable type_variable constraint_set pattern)
           | _ -> None
       )
     |> Enum.fold Constraint_set.union constraint_set
