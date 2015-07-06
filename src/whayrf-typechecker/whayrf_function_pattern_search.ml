@@ -57,7 +57,7 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
         Constraint_set.mem
           (
             Function_pattern_matching_constraint (
-              Function_pattern_matching_constraint_positive (
+              Function_pattern_matching_constraint_squelch (
                 function_type,
                 pattern
               )
@@ -87,7 +87,7 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
             return_pattern
           );
           Function_pattern_matching_constraint (
-            Function_pattern_matching_constraint_positive (
+            Function_pattern_matching_constraint_squelch (
               function_type,
               pattern
             )

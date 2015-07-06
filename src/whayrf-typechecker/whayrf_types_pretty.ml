@@ -54,6 +54,8 @@ and pretty_function_pattern_matching_constraint function_pattern_matching_constr
     pretty_function_type function_type ^ " +~ " ^ pretty_pattern pattern
   | Function_pattern_matching_constraint_negative(function_type, pattern) ->
     pretty_function_type function_type ^ " -~ " ^ pretty_pattern pattern
+  | Function_pattern_matching_constraint_squelch(function_type, pattern) ->
+    pretty_function_type function_type ^ " x~ " ^ pretty_pattern pattern
 
 and pretty_function_type (Function_type (type_variable, constrained_type)) =
   pretty_type_variable type_variable ^ " -> " ^ pretty_constrained_type constrained_type

@@ -51,6 +51,7 @@ sig
   and function_pattern_matching_constraint =
     | Function_pattern_matching_constraint_positive of function_type * pattern
     | Function_pattern_matching_constraint_negative of function_type * pattern
+    | Function_pattern_matching_constraint_squelch of function_type * pattern
   and function_type =
     | Function_type of type_variable * constrained_type
   and ttype =
