@@ -14,6 +14,21 @@ open Whayrf_utils;;
 
 let logger = make_logger "Whayrf_function_pattern_search";;
 
+(** For correctness, on the FORALL rule, when the refreshing happens, it needs
+    to be consistent. I.e., when a pattern variable was substituted, it's always
+    substituted with the same fresh pattern variable. *)
+module Pattern_variable_order =
+struct
+  type t = pattern_variable
+  let compare = compare
+end
+;;
+module Pattern_variable_map = Map.Make(Pattern_variable_order);;
+
+type forall_consistent_freshness_type = pattern_variable Pattern_variable_map.t;;
+
+let forall_consistent_freshness : forall_consistent_freshness_type ref = ref Pattern_variable_map.empty;;
+
 (** Function Pattern Search generates constraints based on function patterns.
     It comes in three flavors, one that takes a raw type (ttype), one that takes
     a restricted type and another that takes a type variable. *)
@@ -119,7 +134,14 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
       inner_pattern
     )
   ) ->
-    let new_pattern_variable = new_fresh_pattern_variable () in
+    let new_pattern_variable =
+      if Pattern_variable_map.mem old_pattern_variable !forall_consistent_freshness then
+        Pattern_variable_map.find old_pattern_variable !forall_consistent_freshness
+      else
+        let fresh_pattern_variable = new_fresh_pattern_variable () in
+        forall_consistent_freshness := Pattern_variable_map.add old_pattern_variable fresh_pattern_variable !forall_consistent_freshness;
+        fresh_pattern_variable
+    in
     let renamed_inner_pattern =
       rename_pattern_variable
         inner_pattern
