@@ -84,6 +84,7 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
           Constraint_set.union additional_constraints_to_test constraint_set
         ) body_constraint_set
       in
+      logger `trace ("The constraint set being close over for function pattern search is: " ^ pretty_constraint_set constraint_set_to_test);
       let closed_constraint_set_to_test =
         perform_closure constraint_set_to_test
       in
@@ -104,10 +105,7 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
             )
         )
       in
-      (
-        logger `trace ("The constraint set being close over for function pattern search is: " ^ pretty_constraint_set constraint_set_to_test);
-        Constraint_set.singleton new_constraint
-      )
+      Constraint_set.singleton new_constraint
     else
       Constraint_set.empty
 
@@ -157,7 +155,7 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
                 )
               )
             else
-              tconstraint
+              raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
 
           | Function_pattern_matching_constraint (
               Function_pattern_matching_constraint_negative (
@@ -179,9 +177,10 @@ let rec function_pattern_search_ttype perform_closure ttype constraint_set patte
                 )
               )
             else
-              tconstraint
+              raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
+
           | _ ->
-            tconstraint
+            raise @@ Invariant_failure "Something different from a function pattern matching constraint got out of function_pattern_search."
       )
 
   (* RECORD *)
