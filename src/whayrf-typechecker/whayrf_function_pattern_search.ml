@@ -24,21 +24,6 @@ end
 ;;
 module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
 
-(** For correctness, on the FORALL rule, when the refreshing happens, it needs
-    to be consistent. I.e., when a pattern variable was substituted, it's always
-    substituted with the same fresh pattern variable. *)
-module Pattern_variable_order =
-struct
-  type t = pattern_variable
-  let compare = compare
-end
-;;
-module Pattern_variable_map = Map.Make(Pattern_variable_order);;
-
-type forall_consistent_freshness_type = pattern_variable Pattern_variable_map.t;;
-
-let forall_consistent_freshness : forall_consistent_freshness_type ref = ref Pattern_variable_map.empty;;
-
 (** Find Function Matching looks for all pairs of function types and patterns
     that can be explored by the Function Pattern Search. It comes in three
     flavors, one that takes a raw type (ttype), one that takes a restricted type
