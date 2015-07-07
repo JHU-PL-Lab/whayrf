@@ -28,6 +28,7 @@ type test_expectation =
   | Expect_stuck
   | Expect_typecheck
   | Expect_typefail
+  | Expect_illformed
 ;;
 
 let parse_expectation str =
@@ -36,6 +37,7 @@ let parse_expectation str =
     | "EXPECT-STUCK" -> Some(Expect_stuck)
     | "EXPECT-TYPECHECK" -> Some(Expect_typecheck)
     | "EXPECT-TYPEFAIL" -> Some(Expect_typefail)
+    | "EXPECT-ILLFORMED" -> Some(Expect_illformed)
     | _ -> None
 ;;
 
@@ -43,9 +45,20 @@ let make_test filename expectations =
   (* Begin by parsing the file. *)
   let expr = File.with_file_in filename Whayrf_parser.parse_whayrf_program in
   (* Verify that it is well-formed. *)
-  check_wellformed_expr expr;
+  let well_formed =
+    try
+      check_wellformed_expr expr;
+      true
+    with
+    | Illformedness_found _ -> false
+  in
   (* Next, typecheck it. *)
-  let (typecheck_result, dispatch_table) = typecheck expr in
+  let (typecheck_result, dispatch_table) =
+    if well_formed then
+      typecheck expr
+    else
+      (false, fun _ _ -> false)
+  in
   let make_single_test expectation =
     let test_name_expectation = match expectation with
       | Expect_evaluate ->
@@ -56,6 +69,8 @@ let make_test filename expectations =
         "(should get typecheck)"
       | Expect_typefail ->
         "(should fail to typecheck)"
+      | Expect_illformed ->
+        "(should be illformed)"
     in
     let test_name = filename ^ ": " ^ test_name_expectation in
     (* Create the test in a thunk. *)
@@ -82,6 +97,8 @@ let make_test filename expectations =
         assert_bool "Typechecking failed." typecheck_result
       | Expect_typefail ->
         assert_bool "Typechecking succeeded." @@ not typecheck_result
+      | Expect_illformed ->
+        assert_bool "The program is well formed." @@ not well_formed
   in
   List.map make_single_test expectations
 ;;

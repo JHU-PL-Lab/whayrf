@@ -1,5 +1,4 @@
-# EXPECT-TYPECHECK
-# EXPECT-EVALUATE
+# EXPECT-ILLFORMED
 
 # This example tests a bogus rank-2 polymorphism in foralls capturing the
 # sematics of the following pseudo-code:
