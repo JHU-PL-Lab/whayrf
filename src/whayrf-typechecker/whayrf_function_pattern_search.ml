@@ -137,6 +137,35 @@ and find_function_pattern_matching_cases_type_variable type_variable constraint_
   |> Enum.fold Function_pattern_matching_case_set.union Function_pattern_matching_case_set.empty
 ;;
 
+let find_all_function_pattern_matching_cases constraint_set =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Conditional_lower_bound (
+              type_variable,
+              pattern,
+              _,
+              _
+            ),
+            _
+          )
+        | Type_variable_constraint (type_variable, pattern) ->
+          Some (
+            find_function_pattern_matching_cases_type_variable
+              type_variable
+              constraint_set
+              pattern
+          )
+        | _ ->
+          None
+    )
+  |> Enum.fold Function_pattern_matching_case_set.union Function_pattern_matching_case_set.empty
+;;
+
 (** Function Pattern Search generates constraints based on function
     patterns. This returns the only the new constraints and not the original
     ones. It comes in three flavors, one that takes a raw type (ttype), one
@@ -199,21 +228,6 @@ and perform_function_pattern_search
     function_pattern_matching_cases
     constraint_set
     pattern =
-  let squelch_constraints =
-    function_pattern_matching_cases
-    |> Function_pattern_matching_case_set.enum
-    |> Enum.map
-      (
-        fun (Function_pattern_matching_case (function_type, pattern)) ->
-          Function_pattern_matching_constraint (
-            Function_pattern_matching_constraint_squelch (
-              function_type, pattern
-            )
-          )
-      )
-    |> Constraint_set.of_enum
-  in
-
   function_pattern_matching_cases
   |> Function_pattern_matching_case_set.enum
   |> Enum.map
@@ -232,27 +246,43 @@ and perform_function_pattern_search
           pattern
         )
       ) ->
-        match pattern with
-        (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
-        (* These rules are almost identical, so they share most of the code. The only
-           difference is in the kind of constraint that is generated, based on the
-           consistency of the resulting constraint closure. *)
-        | Function_pattern (
-            parameter_pattern,
-            return_pattern
-          ) ->
-          if not (
-              Constraint_set.mem
-                (
-                  Function_pattern_matching_constraint (
-                    Function_pattern_matching_constraint_squelch (
-                      function_type,
-                      pattern
-                    )
+        if not (
+            Constraint_set.mem
+              (
+                Function_pattern_matching_constraint (
+                  Function_pattern_matching_constraint_squelch (
+                    function_type,
+                    pattern
                   )
                 )
-                constraint_set
-            ) then
+              )
+              constraint_set
+          ) then
+          match pattern with
+          (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
+          (* These rules are almost identical, so they share most of the code. The only
+             difference is in the kind of constraint that is generated, based on the
+             consistency of the resulting constraint closure. *)
+          | Function_pattern (
+              parameter_pattern,
+              return_pattern
+            ) ->
+            let squelch_constraints =
+              find_all_function_pattern_matching_cases constraint_set
+              |> Function_pattern_matching_case_set.enum
+              |> Enum.map
+                (
+                  fun (Function_pattern_matching_case (function_type, pattern)) ->
+                    Function_pattern_matching_constraint (
+                      Function_pattern_matching_constraint_squelch (
+                        function_type, pattern
+                      )
+                    )
+                )
+              |> Constraint_set.of_enum
+            in
+            logger `trace ("Generated squelch constraints: `" ^ pretty_constraint_set squelch_constraints ^ "'.");
+
             let additional_constraints_to_test = Constraint_set.of_enum @@ List.enum [
                 Lower_bound_constraint (
                   Restricted_type_lower_bound (
@@ -307,86 +337,68 @@ and perform_function_pattern_search
               )
             in
             Constraint_set.singleton (new_constraint)
-          else
-            Constraint_set.empty
 
-        (* FORALL *)
-        | Forall_pattern (
-            old_pattern_variable,
-            inner_pattern
-          ) ->
-          let new_pattern_variable =
-            if Pattern_variable_map.mem old_pattern_variable !forall_consistent_freshness then
-              Pattern_variable_map.find old_pattern_variable !forall_consistent_freshness
-            else
-              let fresh_pattern_variable = new_fresh_pattern_variable () in
-              forall_consistent_freshness := Pattern_variable_map.add old_pattern_variable fresh_pattern_variable !forall_consistent_freshness;
-              fresh_pattern_variable
-          in
-          let renamed_inner_pattern =
-            rename_pattern_variable
+          (* FORALL *)
+          | Forall_pattern (
+              old_pattern_variable,
               inner_pattern
-              new_pattern_variable
-              old_pattern_variable
-          in
-          function_pattern_search_ttype
-            perform_closure
-            (Function_type_type function_type)
-            constraint_set
-            renamed_inner_pattern
-          |> Constraint_set.map
-            (
-              fun tconstraint ->
-                match tconstraint with
-                | Function_pattern_matching_constraint (
-                    Function_pattern_matching_constraint_positive (
-                      other_function_type,
-                      subpattern
-                    )
-                  ) ->
-                  if function_type = other_function_type then
-                    Function_pattern_matching_constraint (
+            ) ->
+            let new_pattern_variable = new_fresh_pattern_variable () in
+            let renamed_inner_pattern =
+              rename_pattern_variable
+                inner_pattern
+                new_pattern_variable
+                old_pattern_variable
+            in
+            function_pattern_search_ttype
+              perform_closure
+              (Function_type_type function_type)
+              constraint_set
+              renamed_inner_pattern
+            |> Constraint_set.map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Function_pattern_matching_constraint (
                       Function_pattern_matching_constraint_positive (
-                        function_type,
-                        Forall_pattern (
-                          old_pattern_variable,
-                          rename_pattern_variable
-                            subpattern
-                            old_pattern_variable
-                            new_pattern_variable
+                        other_function_type,
+                        subpattern
+                      )
+                    ) ->
+                    if function_type = other_function_type then
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_positive (
+                          function_type,
+                          pattern
                         )
                       )
-                    )
-                  else
-                    raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
+                    else
+                      raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
 
-                | Function_pattern_matching_constraint (
-                    Function_pattern_matching_constraint_negative (
-                      other_function_type,
-                      subpattern
-                    )
-                  ) ->
-                  if function_type = other_function_type then
-                    Function_pattern_matching_constraint (
+                  | Function_pattern_matching_constraint (
                       Function_pattern_matching_constraint_negative (
-                        function_type,
-                        Forall_pattern (
-                          old_pattern_variable,
-                          rename_pattern_variable
-                            subpattern
-                            old_pattern_variable
-                            new_pattern_variable
+                        other_function_type,
+                        subpattern
+                      )
+                    ) ->
+                    if function_type = other_function_type then
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_negative (
+                          function_type,
+                          pattern
                         )
                       )
-                    )
-                  else
-                    raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
+                    else
+                      raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
 
-                | _ ->
-                  raise @@ Invariant_failure "Something different from a function pattern matching constraint got out of function_pattern_search."
-            )
+                  | _ ->
+                    raise @@ Invariant_failure "Something different from a function pattern matching constraint got out of function_pattern_search."
+              )
 
-        | _ -> raise @@ Invariant_failure "Shouldn't consider function pattern matching case that's not either function or forall."
+          | _ -> raise @@ Invariant_failure "Shouldn't consider function pattern matching case that's not either function or forall."
+
+        else
+          Constraint_set.empty
     )
   |> Enum.fold Constraint_set.union Constraint_set.empty
 ;;
