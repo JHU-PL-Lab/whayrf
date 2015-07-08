@@ -1,0 +1,33 @@
+# EXPECT-TYPEFAIL
+
+# This captures the essence of the following snippet from the overview section
+# of the paper:
+#
+# let rec paradox n:int =
+#   case paradox of
+#   int ~> {} -> 0
+#   int ~> int -> {}
+# in paradox 4
+
+paradox = fun n -> {
+  returnParadox = paradox ~ fun { int: {} } ~> { { notInt: {} } } ?
+    paradoxMatch -> {
+      intForParadoxMatch = {};
+      returnParadoxMatch = { int = intForParadoxMatch }
+    } : paradoxAntimatch -> {
+      returnParadoxAntimatch = paradoxAntimatch ~ fun { int: {} } ~> { { int: {} } } ?
+        paradoxAntimatchMatch -> {
+          notIntForParadoxMatch = {};
+          returnParadoxAntimatchMatch = { notInt = notIntForParadoxMatch }
+        } : paradoxAntimatchAntimatch -> {
+          bogusFunctionParadoxAntimatchAntimatch = {};
+          parameterForBogusFunctionParadoxAntimatchAntimatch = {};
+          returnParadoxAntimatchAntimatch = bogusFunctionParadoxAntimatchAntimatch parameterForBogusFunctionParadoxAntimatchAntimatch
+        }
+    }
+};
+
+intForParadox = {};
+parameterForParadox = { int = intForParadox };
+
+return = paradox parameterForParadox;
