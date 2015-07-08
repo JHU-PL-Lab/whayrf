@@ -4,7 +4,7 @@
 }
 
 let digit = ['0'-'9']
-let alpha = ['a'-'z'] | ['A'-'Z']
+let alpha = ['a'-'z'] | ['A'-'Z'] | '_'
 let whitespace = [' ' '\t' '\n']
 let comment = '#' [^'\n']* '\n'
 
