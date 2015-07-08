@@ -31,7 +31,7 @@ yCombinator = fun fYCombinator -> {
 };
 
 partialSelfMatch = fun recursePartialSelfMatch -> {
-  returnPartialSelfMatchCurried = fun n -> {
+  returnRecursePartialSelfMatch = fun n -> {
     returnPartialSelfMatch = recursePartialSelfMatch ~ fun { int: {} } ~> { {} } ?
       recursePartialSelfMatch -> {
         returnPartialSelfMatchMatch = {}
