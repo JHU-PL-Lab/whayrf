@@ -26,9 +26,11 @@ further discussion.
 Usage
 -----
 
-## Manual
+There are two different ways to setup and run Whayrf.
 
-1. Make sure you have [OCaml][ocaml] and [Opam][opam] installed on the latest
+## OPAM
+
+1. Make sure you have [OCaml][ocaml] and [OPAM][opam] installed on the latest
    version:
 
     $ opam update
@@ -76,14 +78,6 @@ In order to interact with the toploop (sample programs can be found at
 
     $ docker-compose run --rm whayrf 'ocamlrun whayrf_toploop.byte'
 
-Performance tests
------------------
-
-In `tests/`, run:
-
-    $ ruby run_load_test.rb
-
-This assumes the [Docker](#docker) setup above.
 
 [ocaml]: https://ocaml.org/
 [opam]: https://opam.ocaml.org/
