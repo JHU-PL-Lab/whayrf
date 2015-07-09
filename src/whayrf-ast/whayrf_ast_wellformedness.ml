@@ -17,7 +17,6 @@ type illformedness =
   | Open_filter_variable of var
   | Duplicate_variable_binding of var
   | Open_expression_variable of var
-  | Multiple_use_of_syntactic_function of var
 ;;
 
 exception Illformedness_found of illformedness list;;
@@ -33,8 +32,6 @@ let pretty_illformedness ill =
         sprintf "Variable %s bound twice" (pretty_var x)
     | Open_expression_variable(x) ->
         sprintf "Variable %s is free in this expression" (pretty_var x)
-    | Multiple_use_of_syntactic_function(x) ->
-        sprintf "The following function was applied more than once: `%s'. Whayrf only supports one use of a syntactical function. Check the section of the paper that refers to how polymorphism is handled." (pretty_var x)
 ;;
 
 let merge_illformedness xs =
@@ -165,7 +162,7 @@ let check_wellformed_expr e_initial : unit =
                   already_used_syntactic_functions := Var_set.add applied_function !already_used_syntactic_functions
                 end
               else if Var_set.mem applied_function !already_used_syntactic_functions then
-                raise (Illformedness_found ([Multiple_use_of_syntactic_function (applied_function)]))
+                print_string ("WARNING: The following function was applied more than once: `" ^ pretty_var applied_function ^ "'. Whayrf is monomorphic, check the section 3.3 on the paper for a discussion on polymorphism.")
               else
                 ()
             | _ ->
