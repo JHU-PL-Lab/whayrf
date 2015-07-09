@@ -83,39 +83,6 @@ Library "whayrf-typechecker"
     whayrf-ast,
     whayrf-utils
 
-# Library "whayrf-nested-ast"
-#   Path: src/whayrf-nested-ast
-#   Modules:
-#     Whayrf_nested_ast
-#   BuildDepends:
-#     batteries,
-#     whayrf-ast,
-#     whayrf-utils
-
-# Library "whayrf-nested-parser"
-#   Path: src/whayrf-nested-parser
-#   Modules:
-#     Whayrf_nested_generated_lexer,
-#     Whayrf_nested_generated_parser,
-#     Whayrf_nested_parser
-#   BuildDepends:
-#     batteries,
-#     whayrf-nested-ast,
-#     whayrf-utils
-#   BuildTools+:
-#     ocamllex,
-#     menhir
-    
-# Library "whayrf-a-translator"
-#   Path: src/whayrf-a-translator
-#   Modules:
-#     Whayrf_a_translator
-#   BuildDepends:
-#     batteries,
-#     whayrf-ast,
-#     whayrf-nested-ast,
-#     whayrf-utils
-
 Executable "whayrf-toploop"
   Path: src/whayrf-toploop
   MainIs: whayrf_toploop.ml
@@ -125,17 +92,6 @@ Executable "whayrf-toploop"
     whayrf-parser,
     whayrf-typechecker,
     batteries
-
-# Executable "whayrf-nested-toploop"
-#   Path: src/whayrf-nested-toploop
-#   MainIs: whayrf_nested_toploop.ml
-#   BuildDepends:
-#     whayrf-a-translator,
-#     whayrf-ast,
-#     whayrf-nested-ast,
-#     whayrf-interpreter,
-#     whayrf-nested-parser,
-#     batteries
 
 Executable "test-whayrf"
   Path: test/
