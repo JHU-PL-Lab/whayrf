@@ -1,0 +1,8 @@
+# EXPECT-ILLFORMED
+
+function = fun functionParameter -> { functionReturn = functionParameter };
+
+actualFunctionParameter = {};
+
+a = function actualFunctionParameter;
+b = function actualFunctionParameter;

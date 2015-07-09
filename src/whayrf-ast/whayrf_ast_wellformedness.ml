@@ -17,6 +17,7 @@ type illformedness =
   | Open_filter_variable of var
   | Duplicate_variable_binding of var
   | Open_expression_variable of var
+  | Multiple_use_of_syntactic_function of var
 ;;
 
 exception Illformedness_found of illformedness list;;
@@ -32,6 +33,8 @@ let pretty_illformedness ill =
         sprintf "Variable %s bound twice" (pretty_var x)
     | Open_expression_variable(x) ->
         sprintf "Variable %s is free in this expression" (pretty_var x)
+    | Multiple_use_of_syntactic_function(x) ->
+        sprintf "The following function was applied more than once: `%s'. Whayrf only supports one use of a syntactical function. Check the section of the paper that refers to how polymorphism is handled." (pretty_var x)
 ;;
 
 let merge_illformedness xs =
@@ -143,8 +146,37 @@ let check_wellformed_expr e_initial : unit =
       then raise (Illformedness_found(
               List.map (fun x -> Duplicate_variable_binding(x)) violations))
   in
+  let check_syntactic_function_only_used_once (Expr(clauses)) =
+    let available_syntactic_functions = ref Var_set.empty in
+    let already_used_syntactic_functions = ref Var_set.empty in
+    let rec step clauses_to_analyze =
+      clauses_to_analyze
+      |> List.iter
+        (
+          fun (Clause(assigned_variable, clause_body)) ->
+            match clause_body with
+            | Value_body (Value_function (Function_value (_, Expr(function_clauses)))) ->
+              step function_clauses;
+              available_syntactic_functions := Var_set.add assigned_variable !available_syntactic_functions
+            | Appl_body (applied_function, _) ->
+              if Var_set.mem applied_function !available_syntactic_functions then
+                begin
+                  available_syntactic_functions := Var_set.remove applied_function !available_syntactic_functions;
+                  already_used_syntactic_functions := Var_set.add applied_function !already_used_syntactic_functions
+                end
+              else if Var_set.mem applied_function !already_used_syntactic_functions then
+                raise (Illformedness_found ([Multiple_use_of_syntactic_function (applied_function)]))
+              else
+                ()
+            | _ ->
+              ()
+        )
+    in
+    step clauses
+  in
   (* These must be done sequentially to satisfy invariants of the validation
      steps. *)
   check_closed e_initial;
-  check_unique_bindings e_initial
+  check_unique_bindings e_initial;
+  check_syntactic_function_only_used_once e_initial
 ;;
