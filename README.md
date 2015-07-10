@@ -17,7 +17,7 @@ Usage
 
 There are two different ways to setup and run Whayrf.
 
-## OPAM
+### OPAM
 
 1. Make sure you have [OCaml][ocaml] and [OPAM][opam] installed on the latest
    version:
@@ -54,7 +54,7 @@ There are two different ways to setup and run Whayrf.
 
     $ make test
 
-## Docker
+### Docker
 
 Having [Docker][docker] and [Docker Compose][docker-compose] installed, run:
 
