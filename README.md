@@ -4,17 +4,6 @@ Whayrf
 Proof of concept of the paper "What is Your Function? Static Pattern Matching on
 Function Behavior".
 
-Authors
--------
-
-- Leandro Facchinetti <lfacchi2@jhu.edu>.
-- Pottayil Harisanker Menon <pharisa2@jhu.edu>.
-- Zachary Palmer <zachary.palmer@jhu.edu>.
-- Alexander Rozenshteyn <arozens1@jhu.edu>.
-- Scott F. Smith <scott@jhu.edu>.
-
-The Johns Hopkins University
-
 Caveats
 -------
 
@@ -77,6 +66,17 @@ In order to interact with the toploop (sample programs can be found at
 `test-sources/`):
 
     $ docker-compose run --rm whayrf 'ocamlrun whayrf_toploop.byte'
+
+Authors
+-------
+
+- Leandro Facchinetti <lfacchi2@jhu.edu>.
+- Pottayil Harisanker Menon <pharisa2@jhu.edu>.
+- Zachary Palmer <zachary.palmer@jhu.edu>.
+- Alexander Rozenshteyn <arozens1@jhu.edu>.
+- Scott F. Smith <scott@jhu.edu>.
+
+The Johns Hopkins University
 
 
 [ocaml]: https://ocaml.org/
