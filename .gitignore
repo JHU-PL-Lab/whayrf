@@ -1,1 +1,9 @@
-.paths
+/.paths
+/Makefile
+/_build/
+/configure
+/setup.data
+/setup.log
+/setup.ml
+/test_whayrf.byte
+/whayrf_toploop.byte
