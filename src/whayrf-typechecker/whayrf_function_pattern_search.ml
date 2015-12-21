@@ -41,16 +41,6 @@ let rec find_function_pattern_matching_cases_ttype ttype constraint_set pattern 
     Function_pattern (
       _
     )
-  )
-
-  (* FORALL *)
-  | (
-    Function_type_type (
-      function_type
-    ),
-    Forall_pattern (
-      _
-    )
   ) ->
     Function_pattern_matching_case_set.singleton
       (Function_pattern_matching_case (function_type, pattern))
@@ -322,63 +312,6 @@ and perform_function_pattern_search
               )
             in
             Constraint_set.singleton (new_constraint)
-
-          (* FORALL *)
-          | Forall_pattern (
-              old_pattern_variable,
-              inner_pattern
-            ) ->
-            let new_pattern_variable = new_fresh_pattern_variable () in
-            let renamed_inner_pattern =
-              rename_pattern_variable
-                inner_pattern
-                new_pattern_variable
-                old_pattern_variable
-            in
-            function_pattern_search_ttype
-              perform_closure
-              (Function_type_type function_type)
-              constraint_set
-              renamed_inner_pattern
-            |> Constraint_set.map
-              (
-                fun tconstraint ->
-                  match tconstraint with
-                  | Function_pattern_matching_constraint (
-                      Function_pattern_matching_constraint_positive (
-                        other_function_type,
-                        subpattern
-                      )
-                    ) ->
-                    if function_type = other_function_type then
-                      Function_pattern_matching_constraint (
-                        Function_pattern_matching_constraint_positive (
-                          function_type,
-                          pattern
-                        )
-                      )
-                    else
-                      raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
-
-                  | Function_pattern_matching_constraint (
-                      Function_pattern_matching_constraint_negative (
-                        other_function_type,
-                        subpattern
-                      )
-                    ) ->
-                    if function_type = other_function_type then
-                      Function_pattern_matching_constraint (
-                        Function_pattern_matching_constraint_negative (
-                          function_type,
-                          pattern
-                        )
-                      )
-                    else
-                      raise @@ Invariant_failure "Different function types got into function_pattern_search and out of it."
-
-                  | _ ->
-                    raise @@ Invariant_failure "Something different from a function pattern matching constraint got out of function_pattern_search."
-              )
 
           | _ -> raise @@ Invariant_failure "Shouldn't consider function pattern matching case that's not either function or forall."
 
