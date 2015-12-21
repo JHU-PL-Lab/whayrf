@@ -79,35 +79,6 @@ and is_compatible_ttype
      (negative_patterns = Pattern_set.empty) then
     true
   else
-    (* VARIABLE *)
-    (* Filter out the pattern variables that are only present in one of the two
-       pattern sets (XOR). Pattern variables that are present in both the
-       positive and negative pattern sets stay. *)
-    let positive_patterns =
-      positive_patterns
-      |> Pattern_set.enum
-      |> Enum.filter (
-        fun pattern ->
-          match pattern with
-          | Pattern_variable_pattern (_) ->
-            Pattern_set.mem pattern negative_patterns
-          | _ -> true
-      )
-      |> Pattern_set.of_enum
-    in
-    let negative_patterns =
-      negative_patterns
-      |> Pattern_set.enum
-      |> Enum.filter (
-        fun pattern ->
-          match pattern with
-          | Pattern_variable_pattern (_) ->
-            Pattern_set.mem pattern positive_patterns
-          | _ -> true
-      )
-      |> Pattern_set.of_enum
-    in
-
     match ttype with
 
     (* RECORD *)

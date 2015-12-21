@@ -19,10 +19,7 @@ let is_subsumption_pattern pattern_1 pattern_2 =
       if Pattern_constraint_set.is_empty pattern_constraint_closed_pattern_constraint_set then
         true
       else
-        pattern_constraint_closed_pattern_constraint_set
-        |> perform_transitive_pattern_closure
-        |> filter_out_wobbly_variables
-        |> step
+        step pattern_constraint_closed_pattern_constraint_set
     with
     | Contradiction_found -> false
   in
