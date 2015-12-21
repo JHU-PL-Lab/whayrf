@@ -20,7 +20,6 @@ open Lexing;;
 %token COLON 
 %token DOT 
 %token KEYWORD_FUN 
-%token KEYWORD_FORALL 
 %token DOUBLE_SEMICOLON 
 
 %start <Whayrf_ast.expr> prog
@@ -111,10 +110,6 @@ pattern:
       { Record_pattern(Ident_map.of_enum (Batteries.List.enum $2)) }
   | KEYWORD_FUN pattern TILDE_ARROW OPEN_BRACE pattern CLOSE_BRACE
       { Function_pattern($2,$5) }
-  | identifier
-      { Pattern_variable_pattern(Pattern_variable($1)) }
-  | KEYWORD_FORALL identifier DOT pattern
-      { Forall_pattern(Pattern_variable($2),$4) }
   ;
 
 separated_nonempty_trailing_list(separator, rule):
