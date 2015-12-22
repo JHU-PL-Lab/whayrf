@@ -27,5 +27,6 @@ rule token = parse
   | ":"                              { COLON }
   | "."                              { DOT }
   | "fun"                            { KEYWORD_FUN }
+  | "forall"                         { KEYWORD_FORALL }
   | ident_start ident_cont* as s     { IDENTIFIER s }
   | ";;"                             { DOUBLE_SEMICOLON }

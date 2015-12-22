@@ -43,8 +43,13 @@ let rec is_compatible value environment pattern dispatch_table =
       )
 
   (* FUNCTION *)
-  | (Value_function(_), Function_pattern(_)) ->
+  | (Value_function(_), Function_pattern(_))
 
+  (* FORALL *)
+  | (_, Forall_pattern(_))
+
+  (* EXISTS *)
+  | (_, Pattern_variable_pattern(_)) ->
     dispatch_table value pattern
 
   (* Fallback *)

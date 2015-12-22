@@ -90,6 +90,13 @@ and expr = Expr of clause list
 and pattern =
   | Record_pattern of pattern Ident_map.t
   | Function_pattern of pattern * pattern
+  | Pattern_variable_pattern of pattern_variable
+  | Forall_pattern of pattern_variable * pattern
+
+(** A type representing pattern variables. *)
+and pattern_variable =
+  | Pattern_variable of ident
+  | Fresh_pattern_variable of int
 ;;
 
 (**
@@ -98,6 +105,14 @@ and pattern =
 
 (** Counter used to provide new fresh pattern variables. *)
 let fresh_pattern_variable_counter = ref 0;;
+
+(** Returns a new fresh pattern variable guaranteed to never be seen by the
+    program. *)
+let new_fresh_pattern_variable () =
+  let current_fresh_pattern_variable = !fresh_pattern_variable_counter in
+  fresh_pattern_variable_counter := current_fresh_pattern_variable + 1;
+  Fresh_pattern_variable current_fresh_pattern_variable
+;;
 
 (** Perform substitution on patterns. It's the operation represented by
     $\pi\[\beta \ \beta'\]$. A.k.a. alpha substitution. *)
@@ -117,4 +132,21 @@ let rec rename_pattern_variable pattern new_pattern_variable old_pattern_variabl
       rename_pattern_variable function_pattern new_pattern_variable old_pattern_variable,
       rename_pattern_variable parameter_pattern new_pattern_variable old_pattern_variable
     )
+  | Pattern_variable_pattern (this_pattern_variable) ->
+    if this_pattern_variable = old_pattern_variable then
+      Pattern_variable_pattern (new_pattern_variable)
+    else
+      pattern
+  | Forall_pattern (this_pattern_variable, subpattern) ->
+    (* Prevents shadowed variables from being renamed. *)
+    if this_pattern_variable = old_pattern_variable then
+      pattern
+    else
+      Forall_pattern (
+        this_pattern_variable,
+        rename_pattern_variable
+          subpattern
+          new_pattern_variable
+          old_pattern_variable
+      )
 ;;
