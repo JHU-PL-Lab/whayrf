@@ -1,0 +1,20 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This program captures the semantics of the following pseudo-code:
+#
+# f = fun x -> x
+# f ~/ forall b. b -> b -> b
+
+f = fun x -> {
+  returnF = x
+};
+
+return = f ~ forall beta. fun beta ~> { fun beta ~> { beta } } ?
+  fMatch -> {
+    bogusFunctionFAntimatch = {};
+    parameterForBogusFunctionFAntimatch = {};
+    returnFAntimatch = bogusFunctionFAntimatch parameterForBogusFunctionFAntimatch
+  } : fAntimatch -> {
+    returnFMatch = {}
+  }

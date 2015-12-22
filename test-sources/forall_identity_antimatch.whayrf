@@ -1,0 +1,13 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+identity = fun a -> { returnIdentity = {} };
+return = identity ~ forall beta. fun beta ~> { beta } ?
+  identityMatch -> {
+    bogusFunctionIdentityAntimatch = {};
+    parameterForBogusFunctionIdentityAntimatch = {};
+    returnIdentityAntimatch = bogusFunctionIdentityAntimatch parameterForBogusFunctionIdentityAntimatch
+  } :
+  identityAntimatch -> {
+    returnIdentityMatch = {}
+  };

@@ -1,0 +1,29 @@
+# EXPECT-TYPEFAIL
+
+# This program captures the semantics of the following pseudo-code:
+#
+# f = fun x -> fun y ->
+#   case x of
+#     { a: _ } -> x
+#     _ -> y
+# f ~ forall b. b -> b -> b
+
+f = fun x -> {
+  returnF = fun y -> {
+    returnCurriedF = x ~ { a: {} } ?
+    xMatch -> {
+      returnXMatch = x
+    } : xAntimatch -> {
+      returnXAntimatch = y
+    }
+  }
+};
+
+return = f ~ forall beta. fun beta ~> { fun beta ~> { beta } } ?
+  fMatch -> {
+    bogusFunctionFAntimatch = {};
+    parameterForBogusFunctionFAntimatch = {};
+    returnFAntimatch = bogusFunctionFAntimatch parameterForBogusFunctionFAntimatch
+  } : fAntimatch -> {
+    returnFMatch = {}
+  }

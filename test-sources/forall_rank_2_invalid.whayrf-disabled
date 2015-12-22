@@ -1,0 +1,37 @@
+# EXPECT-ILLFORMED
+
+# This example tests a bogus rank-2 polymorphism in foralls capturing the
+# sematics of the following pseudo-code:
+#
+# let f g x y = { one = g {} {}, two = g x y } in
+# f ~/ forall beta. forall innerBeta. (innerBeta ~> innerBeta ~> innerBeta) ~> beta ~> beta ~> { one: {}, two: beta }
+
+f = fun g -> {
+  returnF = fun x -> {
+    returnG = fun y -> {
+      oneCurriedParameter = {};
+      oneParameter = {};
+      oneCurried = g oneCurriedParameter;
+      one = oneCurried oneParameter;
+      twoCurriedParameter = {};
+      twoParameter = {};
+      twoCurried = g twoCurriedParameter;
+      two = twoCurried twoParameter;
+      returnGCurry = {
+        one = one,
+        two = two
+      }
+    }
+  }
+};
+
+return = f ~
+  forall beta. forall innerBeta. fun fun innerBeta ~> { fun innerBeta ~> { innerBeta } } ~>
+    { fun beta ~> { fun beta ~> { {one: {}, two: beta} } } } ?
+  fMatch -> {
+    bogusFunctionFMatch = {};
+    parameterForBogusFunctionFMatch = {};
+    returnFMatch = bogusFunctionFMatch parameterForBogusFunctionFMatch
+  } : fAntimatch -> {
+    returnFAntimatch = {}
+  }
