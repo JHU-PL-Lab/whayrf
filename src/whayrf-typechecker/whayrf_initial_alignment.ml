@@ -55,6 +55,23 @@ and initial_align_clause (Clause (Var(left_ident, _), body)) =
         Constraint_set.empty
     )
 
+  (* PROJECTION *)
+  | Projection_body (Var(record_ident, _), label) ->
+    Constrained_type (
+      type_variable,
+      Constraint_set.add
+        (
+          Lower_bound_constraint (
+            Projection_lower_bound (
+              Type_variable (record_ident),
+              label
+            ),
+            type_variable
+          )
+        )
+        Constraint_set.empty
+    )
+
   (* FUNCTION *)
   | Value_body (Value_function(function_value)) ->
     Constrained_type (
@@ -72,23 +89,6 @@ and initial_align_clause (Clause (Var(left_ident, _), body)) =
                   Negative_pattern_set(Pattern_set.empty)
                 )
               )
-            ),
-            type_variable
-          )
-        )
-        Constraint_set.empty
-    )
-
-  (* PROJECTION *)
-  | Projection_body (Var(record_ident, _), label) ->
-    Constrained_type (
-      type_variable,
-      Constraint_set.add
-        (
-          Lower_bound_constraint (
-            Projection_lower_bound (
-              Type_variable (record_ident),
-              label
             ),
             type_variable
           )
