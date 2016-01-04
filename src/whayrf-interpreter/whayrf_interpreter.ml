@@ -149,7 +149,10 @@ let rec evaluate env lastvar cls dispatch_table =
         evaluate env (Some x) (fresh_wire f_target x' x @ t) dispatch_table
 ;;
 
-(** Façade for evaluation. *)
+(** Façade for evaluation.
+
+    Not a single step of the Small Step Operation Semantics (->^1), but the
+    fixpoint that performs every operation available. *)
 let eval (Expr(cls)) dispatch_table =
   let env = Environment.create(20) in
   let repl_fn = repl_fn_for cls (Freshening_stack []) Var_set.empty in
