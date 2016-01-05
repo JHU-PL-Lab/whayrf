@@ -74,7 +74,7 @@ let build_dispatch_table constraint_set =
       let function_type =
         initial_align_function unfreshened_function_value
       in
-      let is_antimatch =
+      let is_negative =
         constraint_set
         |> Constraint_set.enum
         |> Enum.exists
@@ -92,10 +92,10 @@ let build_dispatch_table constraint_set =
               | _ -> false
           )
       in
-      if is_antimatch then
+      if is_negative then
         false
       else
-        let is_match =
+        let is_positive =
           constraint_set
           |> Constraint_set.enum
           |> Enum.exists
@@ -113,14 +113,14 @@ let build_dispatch_table constraint_set =
                 | _ -> false
             )
         in
-        if is_match then
+        if is_positive then
           true
         else
           (
             logger `fatal ("Function type: `" ^ pretty_function_type function_type ^ "'.");
             logger `fatal ("Pattern: `" ^ pretty_pattern pattern ^ "'.");
             logger `fatal ("Constraint set: `" ^ pretty_constraint_set constraint_set ^ "'.");
-          raise (Invariant_failure "Function pattern matching constraint absent (function_type +~ pattern or function_type -~ pattern) from negative pattern set should be present in positive pattern set.")
+          raise (Invariant_failure "Both positive and negative function pattern matching constraints (function_type +~ pattern or function_type -~ pattern) absent from constraint set.")
           )
     | _ ->
       raise (Invariant_failure "Record shouldn't be passed to dispatch table function.")
