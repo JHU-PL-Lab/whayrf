@@ -142,7 +142,7 @@ let find_all_function_pattern_matching_cases constraint_set =
 ;;
 
 (** Function Pattern Search generates constraints based on function
-    patterns. This returns the only the new constraints and not the original
+    patterns. This returns only the new constraints and not the original
     ones. It comes in three flavors, one that takes a raw type (ttype), one
     that takes a restricted type and another that takes a type variable.
 
