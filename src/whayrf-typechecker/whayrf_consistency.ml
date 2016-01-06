@@ -58,8 +58,11 @@ let is_inconsistent constraint_set =
                       (parameter_type_variable = other_parameter_type_variable) &&
                       (
                         match function_ttype with
+                        (* By APPLICATION FAILURE, this constraints are _not_
+                           inconsistent. *)
                         | Function_type_type _ ->
                           false
+                        (* UNKNOWN APPLICATION FAILURE *)
                         | Unknown_type ->
                           not (
                             positive_patterns
@@ -87,6 +90,8 @@ let is_inconsistent constraint_set =
                                   | _ -> false
                               )
                           )
+                        (* Any other type that shows up in the place of a
+                           function in an application is an inconsistency. *)
                         | _ -> true
                       )
 
@@ -112,6 +117,7 @@ let is_inconsistent constraint_set =
                     ) ->
                       (record_type_variable = other_record_type_variable) &&
                       (not
+                        (* HAS FIELD *)
                          (
                            match ttype with
                            | Record_type (record_elements) ->
