@@ -135,6 +135,12 @@ let close_by_projection constraint_set =
                                           ttype,
                                           Type_restriction (
                                             Positive_pattern_set (
+                                              (* On the Figure, note that `\tau'
+                                                 is a restricted type
+                                                 already. The Figure Notation
+                                                 says, in that case, we should
+                                                 union the patterns in the
+                                                 filter together. *)
                                               Pattern_set.union
                                                 positive_patterns
                                                 projected_patterns
@@ -318,6 +324,11 @@ let close_by_conditional_success constraint_set =
                                 ttype,
                                 Type_restriction (
                                   Positive_pattern_set (
+                                    (* On the Figure, note that `\tau' is a
+                                       restricted type already. The Figure
+                                       Notation says, in that case, we should
+                                       union the patterns in the filter
+                                       together. *)
                                     Pattern_set.add
                                       pattern
                                       positive_patterns
@@ -425,6 +436,11 @@ let close_by_conditional_failure constraint_set =
                                   ),
                                   Negative_pattern_set (
                                     Pattern_set.add
+                                      (* On the Figure, note that `\tau' is a
+                                         restricted type already. The Figure
+                                         Notation says, in that case, we should
+                                         union the patterns in the filter
+                                         together. *)
                                       pattern
                                       negative_patterns
                                   )
