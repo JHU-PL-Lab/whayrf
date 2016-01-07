@@ -496,7 +496,7 @@ let close_by_unknown_application constraint_set =
                       Unknown_type,
                       Type_restriction (
                         Positive_pattern_set (positive_patterns),
-                        Negative_pattern_set (negative_patterns)
+                        _
                       )
                     )
                   ),
