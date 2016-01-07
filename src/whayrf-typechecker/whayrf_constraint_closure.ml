@@ -24,7 +24,17 @@ let logger = make_logger "Whayrf_constraint_closure";;
 let rec perform_closure constraint_set =
   logger `trace ("Performing constraint closure with constraint set: `" ^ pretty_constraint_set constraint_set ^ "'.");
   (* The order in which operations happen here is fundamental for the correct
-     behavior of the program. *)
+     behavior of the program.
+
+     This is because, on function closure, we perform a subordinate closure. And
+     we don't want the subordinate closure doing non-function closure steps that
+     the main closure should have done.
+
+     The solution is to only enter function closure steps after finishing the
+     non-function closure.
+
+     This is a slight divergence on the presentation on the paper, but for a
+     good reason: it eliminates repetition of work and increases performance. *)
   let closure_functions =
     [
       perform_non_function_closure;
