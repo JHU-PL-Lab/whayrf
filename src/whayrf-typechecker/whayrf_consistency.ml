@@ -152,6 +152,23 @@ let is_inconsistent constraint_set =
                           )
                         )
 
+                    (* AMBIGUOUS DISPATCH *)
+                    | (
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_positive (
+                          positive_function_type, positive_pattern
+                        )
+                      ),
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_negative (
+                          negative_function_type, negative_pattern
+                        )
+                      ),
+                      _
+                    ) ->
+                      (positive_function_type = negative_function_type) &&
+                      (positive_pattern = negative_pattern)
+
                     | _ -> false
                 )
           )
