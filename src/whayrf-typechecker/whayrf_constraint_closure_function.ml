@@ -16,6 +16,92 @@ open Whayrf_utils;;
 
 let logger = make_logger "Whayrf_constraint_closure_function";;
 
+type function_pattern_match =
+  | Function_pattern_match of function_type * pattern
+;;
+
+module Function_pattern_match_order =
+struct
+  type t = function_pattern_match
+  let compare = compare
+end;;
+
+module Function_pattern_match_set = Set.Make(Function_pattern_match_order);;
+
+(** FUN PATS
+
+    Find function type-pattern pairs in the constraint set. *)
+let find_function_patterns constraint_set =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Restricted_type_lower_bound (
+              Restricted_type (
+                Function_type_type (
+                  function_type
+                ),
+                _
+              )
+            ),
+            type_variable
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+
+                  (* S_f *)
+                  | Type_variable_constraint (
+                      other_type_variable,
+                      (
+                        Function_pattern (
+                        _,
+                        _
+                        ) as pattern
+                      )
+                    )
+
+                  (* S_p *)
+                  | Lower_bound_constraint (
+                      Conditional_lower_bound (
+                        other_type_variable,
+                        (
+                          Function_pattern (
+                            _,
+                            _
+                          ) as pattern
+                        ),
+                        _,
+                        _
+                      ),
+                      _
+                    ) ->
+                    if type_variable = other_type_variable then
+                      Some (
+                        Function_pattern_match (
+                          function_type,
+                          pattern
+                        )
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+          )
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Function_pattern_match_set.of_enum
+;;
+
 (** Perform Function Constraint Closure (i.e. the one with the F superscript).
 
     This function doesn't perform a single step, but the fixpoint (omega). This
