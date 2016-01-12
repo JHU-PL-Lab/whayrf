@@ -117,7 +117,9 @@ and function_pattern_search_type_variable type_variable constraint_set pattern =
 
 (** Find all function pattern matching cases in a constraint set.
 
-    It's inspired by FUN PATS.*)
+    The rules come from Function Closure in the appendix, and the idea of
+    returning function_pattern_matching_cases comes from FUN PATS in the main
+    paper. *)
 let function_pattern_search constraint_set =
   constraint_set
   |> Constraint_set.enum
