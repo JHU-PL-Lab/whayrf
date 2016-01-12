@@ -80,6 +80,114 @@ let check
 
     This function doesn't perform a single step, but the fixpoint (omega). This
     returns the augmented constraint set with the new constraints as well as the
+    original constraints.
+
+    It's an hybrid from Function Closure Rules in the main paper and FUNCTION
+    CLOSURE in the appendix. *)
+let perform_function_closure perform_closure constraint_set =
+  (* Look for function_type-pattern pairs, as per Function Closure Rules in the
+     main paper. *)
+  let function_pattern_matching_cases =
+    function_pattern_search constraint_set
+  in
+  function_pattern_matching_cases
+  |> Function_pattern_matching_case_set.enum
+  |> Enum.filter_map
+    (
+      fun (
+        Function_pattern_matching_case (
+          function_type,
+          pattern
+        )
+      ) ->
+        (* Skip over squelch constraints as per Function Closure Rules in the
+           main paper. *)
+        if (
+          Constraint_set.mem
+            (
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_squelch (
+                  function_type,
+                  pattern
+                )
+              )
+            )
+            constraint_set
+        )
+        then
+          None
+        else
+          Some (
+            (* Call CHECK, as per FUNCTION CLOSURE in the appendix *)
+            let squelch_constraints =
+              function_pattern_matching_cases
+              |> Function_pattern_matching_case_set.enum
+              |> Enum.map
+                (
+                  fun (Function_pattern_matching_case (function_type, pattern)) ->
+                    Function_pattern_matching_constraint (
+                      Function_pattern_matching_constraint_squelch (
+                        function_type, pattern
+                      )
+                    )
+                )
+              |> Constraint_set.of_enum
+            in
+            if (
+              check
+                perform_closure
+                function_type
+                (
+                  Constraint_set.union
+                    constraint_set
+                    squelch_constraints
+                )
+                pattern
+            )
+            (* Generate positive and negative mach constraints, as per Function
+               Closure Rules in the main paper and FUNCTION CLOSURE in the appendix. *)
+            then
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_positive (
+                  function_type,
+                  pattern
+                )
+              )
+            else
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_negative (
+                  function_type,
+                  pattern
+                )
+              )
+          )
+    )
+  |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
+;;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(** Perform Function Constraint Closure (i.e. the one with the F superscript).
+
+    This function doesn't perform a single step, but the fixpoint (omega). This
+    returns the augmented constraint set with the new constraints as well as the
     original constraints. *)
 let perform_function_closure perform_closure constraint_set =
   let augmented_constraint_set =
