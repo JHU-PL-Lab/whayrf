@@ -30,7 +30,7 @@ module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_c
     and another that takes a type variable.
 
     It's inspired by Function Pattern Search and FUN PATS. *)
-let rec find_function_pattern_matching_cases_ttype ttype constraint_set pattern =
+let rec function_pattern_search_ttype ttype constraint_set pattern =
   match (ttype, pattern) with
   (* FUNCTION *)
   | (
@@ -64,7 +64,7 @@ let rec find_function_pattern_matching_cases_ttype ttype constraint_set pattern 
               fun (pattern_label, pattern) ->
                 if record_label = pattern_label then
                   Some (
-                    find_function_pattern_matching_cases_type_variable
+                    function_pattern_search_type_variable
                       type_variable
                       constraint_set
                       pattern
@@ -81,16 +81,16 @@ let rec find_function_pattern_matching_cases_ttype ttype constraint_set pattern 
 
 (** FILTERED TYPE *)
 (* Simply ignore the filter. *)
-and find_function_pattern_matching_cases_restricted_type
+and function_pattern_search_restricted_type
     (Restricted_type (ttype, _))
     constraint_set
     pattern =
-  find_function_pattern_matching_cases_ttype ttype constraint_set pattern
+  function_pattern_search_ttype ttype constraint_set pattern
 
 (** TYPE SELECTION *)
 (* This implementation doesn't apply the rule once, but performs the fixpoint
    and returns the resulting set. *)
-and find_function_pattern_matching_cases_type_variable type_variable constraint_set pattern =
+and function_pattern_search_type_variable type_variable constraint_set pattern =
   logger `trace ("Looking for type variable `" ^ pretty_type_variable type_variable ^ "' in the constraint set: `"  ^ pretty_constraint_set constraint_set ^ "', and matching it with pattern `" ^ pretty_pattern pattern ^ "'.");
   constraint_set
   |> Constraint_set.enum
@@ -103,7 +103,7 @@ and find_function_pattern_matching_cases_type_variable type_variable constraint_
             other_type_variable
           ) ->
           if type_variable = other_type_variable then
-            Some (find_function_pattern_matching_cases_restricted_type restricted_type constraint_set pattern)
+            Some (function_pattern_search_restricted_type restricted_type constraint_set pattern)
           else
             None
         | _ -> None
@@ -114,7 +114,7 @@ and find_function_pattern_matching_cases_type_variable type_variable constraint_
 (* Find all function pattern matching cases in a constraint set.
 
    It's inspired by FUN PATS.*)
-let find_all_function_pattern_matching_cases constraint_set =
+let function_pattern_search constraint_set =
   constraint_set
   |> Constraint_set.enum
   |> Enum.filter_map
@@ -132,7 +132,7 @@ let find_all_function_pattern_matching_cases constraint_set =
           )
         | Type_variable_constraint (type_variable, pattern) ->
           Some (
-            find_function_pattern_matching_cases_type_variable
+            function_pattern_search_type_variable
               type_variable
               constraint_set
               pattern
@@ -149,63 +149,15 @@ let find_all_function_pattern_matching_cases constraint_set =
     that takes a restricted type and another that takes a type variable.
 
     This is used by Function Constraint Closure. *)
-let rec function_pattern_search_ttype
-    perform_closure
-    ttype
-    constraint_set
-    pattern =
-  let function_pattern_matching_cases =
-    find_function_pattern_matching_cases_ttype
-      ttype
-      constraint_set
-      pattern
-  in
-  perform_function_pattern_search
-    perform_closure
-    function_pattern_matching_cases
-    constraint_set
-    pattern
-
-and function_pattern_search_restricted_type
-    perform_closure
-    restricted_type
-    constraint_set
-    pattern =
-  let function_pattern_matching_cases =
-    find_function_pattern_matching_cases_restricted_type
-      restricted_type
-      constraint_set
-      pattern
-  in
-  perform_function_pattern_search
-    perform_closure
-    function_pattern_matching_cases
-    constraint_set
-    pattern
-
-and function_pattern_search_type_variable
+let rec function_pattern_search_temp
     perform_closure
     type_variable
     constraint_set
     pattern =
-  let function_pattern_matching_cases =
-    find_function_pattern_matching_cases_type_variable
-      type_variable
-      constraint_set
-      pattern
-  in
-  perform_function_pattern_search
-    perform_closure
-    function_pattern_matching_cases
+  function_pattern_search_type_variable
+    type_variable
     constraint_set
     pattern
-
-and perform_function_pattern_search
-    perform_closure
-    function_pattern_matching_cases
-    constraint_set
-    pattern =
-  function_pattern_matching_cases
   |> Function_pattern_matching_case_set.enum
   |> Enum.map
     (
@@ -245,7 +197,7 @@ and perform_function_pattern_search
               return_pattern
             ) ->
             let squelch_constraints =
-              find_all_function_pattern_matching_cases constraint_set
+              function_pattern_search constraint_set
               |> Function_pattern_matching_case_set.enum
               |> Enum.map
                 (

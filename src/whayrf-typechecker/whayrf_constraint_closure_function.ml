@@ -45,7 +45,7 @@ let perform_function_closure perform_closure constraint_set =
               type_variable,
               pattern
             ) ->
-            Some (function_pattern_search_type_variable perform_closure type_variable constraint_set pattern)
+            Some (function_pattern_search_temp perform_closure type_variable constraint_set pattern)
           | _ -> None
       )
     |> Enum.fold Constraint_set.union constraint_set
