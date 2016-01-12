@@ -25,15 +25,14 @@ end
 module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
 
 (** Find Function Matching looks for all pairs of function types and patterns
-    that can be explored by the Function Pattern Search. It comes in three
+    that can be explored by subordinate closures. It comes in three
     flavors, one that takes a raw type (ttype), one that takes a restricted type
     and another that takes a type variable.
 
-    It's inspired by Function Pattern Search. *)
+    It's inspired by Function Pattern Search and FUN PATS. *)
 let rec find_function_pattern_matching_cases_ttype ttype constraint_set pattern =
   match (ttype, pattern) with
-  (* FUNCTION MATCH and FUNCTION ANTI-MATCH *)
-  (* These rules are almost identical, so they share the code. *)
+  (* FUNCTION *)
   | (
     Function_type_type (
       function_type
@@ -112,6 +111,9 @@ and find_function_pattern_matching_cases_type_variable type_variable constraint_
   |> Enum.fold Function_pattern_matching_case_set.union Function_pattern_matching_case_set.empty
 ;;
 
+(* Find all function pattern matching cases in a constraint set.
+
+   It's inspired by FUN PATS.*)
 let find_all_function_pattern_matching_cases constraint_set =
   constraint_set
   |> Constraint_set.enum
