@@ -16,6 +16,66 @@ open Whayrf_utils;;
 
 let logger = make_logger "Whayrf_constraint_closure_function";;
 
+(* CHECK *)
+let check
+    perform_closure
+    (
+      Function_type (
+        parameter_type_variable,
+        Constrained_type (
+          return_type_variable,
+          body_constraint_set
+        )
+      )
+    )
+    constraint_set
+    pattern =
+  match pattern with
+  | Function_pattern (
+      parameter_pattern,
+      return_pattern
+    ) ->
+    let additional_constraints_to_test = Constraint_set.of_enum @@ List.enum [
+        Lower_bound_constraint (
+          Restricted_type_lower_bound (
+            Restricted_type (
+              Unknown_type,
+              Type_restriction (
+                Positive_pattern_set (
+                  Pattern_set.singleton parameter_pattern
+                ),
+                Negative_pattern_set (Pattern_set.empty)
+              )
+            )
+          ),
+          parameter_type_variable
+        );
+        Type_variable_constraint (
+          return_type_variable,
+          return_pattern
+        )
+      ]
+    in
+    let constraint_set_to_test =
+      List.fold_left
+        Constraint_set.union
+        Constraint_set.empty
+        [
+          constraint_set;
+          body_constraint_set;
+          additional_constraints_to_test
+        ]
+    in
+    logger `trace ("Performing subordinate closure with constraint set: " ^ pretty_constraint_set constraint_set_to_test);
+    let closed_constraint_set_to_test =
+      perform_closure constraint_set_to_test
+    in
+    is_consistent closed_constraint_set_to_test
+
+  | _ ->
+    raise @@ Invariant_failure "`check' called with non-function pattern."
+;;
+
 (** Perform Function Constraint Closure (i.e. the one with the F superscript).
 
     This function doesn't perform a single step, but the fixpoint (omega). This
