@@ -14,6 +14,8 @@ open Whayrf_utils;;
 
 let logger = make_logger "Whayrf_function_pattern_search";;
 
+(** The function_type-pattern pair used in the main paper for cycle detection
+    and returned by FUN PATS. *)
 type function_pattern_matching_case = Function_pattern_matching_case of function_type * pattern;;
 
 module Function_pattern_matching_case_order =
@@ -24,12 +26,14 @@ end
 ;;
 module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
 
-(** Find Function Matching looks for all pairs of function types and patterns
-    that can be explored by subordinate closures. It comes in three
-    flavors, one that takes a raw type (ttype), one that takes a restricted type
-    and another that takes a type variable.
+(** Function Pattern Search looks for all pairs of function types and patterns
+    that can be explored by subordinate closures. It comes in three flavors, one
+    that takes a raw type (ttype), one that takes a restricted type and another
+    that takes a type variable.
 
-    It's inspired by Function Pattern Search and FUN PATS. *)
+    The rules come from Function Pattern Search in the appendix, but instead of
+    returning squelch constraints, it returns function_pattern_matching_cases,
+    as per FUN PATS in the main paper. *)
 let rec function_pattern_search_ttype ttype constraint_set pattern =
   match (ttype, pattern) with
   (* FUNCTION *)
@@ -111,15 +115,9 @@ and function_pattern_search_type_variable type_variable constraint_set pattern =
   |> Enum.fold Function_pattern_matching_case_set.union Function_pattern_matching_case_set.empty
 ;;
 
-(** Function Pattern Search generates constraints based on function
-    patterns. This returns only the new constraints and not the original
-    ones. It comes in three flavors, one that takes a raw type (ttype), one
-    that takes a restricted type and another that takes a type variable.
+(** Find all function pattern matching cases in a constraint set.
 
-    This is used by Function Constraint Closure. *)
-(* Find all function pattern matching cases in a constraint set.
-
-   It's inspired by FUN PATS.*)
+    It's inspired by FUN PATS.*)
 let function_pattern_search constraint_set =
   constraint_set
   |> Constraint_set.enum
