@@ -31,7 +31,7 @@ module Function_pattern_match_set = Set.Make(Function_pattern_match_order);;
 (** FUN PATS
 
     Find function type-pattern pairs in the constraint set. *)
-let find_function_patterns constraint_set =
+let find_function_pattern_matches constraint_set =
   constraint_set
   |> Constraint_set.enum
   |> Enum.filter_map
@@ -62,8 +62,8 @@ let find_function_patterns constraint_set =
                       other_type_variable,
                       (
                         Function_pattern (
-                        _,
-                        _
+                          _,
+                          _
                         ) as pattern
                       )
                     )
@@ -100,6 +100,95 @@ let find_function_patterns constraint_set =
     )
   |> Enum.concat
   |> Function_pattern_match_set.of_enum
+;;
+
+(* FUN MATCH
+
+   Whether a function_type matches a pattern in the context of a constraint
+   set.
+
+   It is a assumed that the constraint_set is already closed over non-function
+   closure. So the N-closure in the rule is not performed. *)
+let is_function_pattern_match
+    perform_closure
+    (
+      Function_type (
+        parameter_type_variable,
+        Constrained_type (
+          return_type_variable,
+          body_constraint_set
+        )
+      )
+    )
+    function_pattern
+    constraint_set =
+  match function_pattern with
+  | Function_pattern (
+      parameter_pattern,
+      return_pattern
+    ) ->
+    let squelches =
+      constraint_set
+      |> find_function_pattern_matches
+      |> Function_pattern_match_set.enum
+      |> Enum.map
+        (
+          fun (
+            Function_pattern_match (
+              function_type,
+              pattern
+            )
+          ) ->
+            Function_pattern_matching_constraint (
+              Function_pattern_matching_constraint_squelch (
+                function_type,
+                pattern
+              )
+            )
+        )
+      |> Constraint_set.of_enum
+    in
+    let parameter_return_constraints =
+      let parameter_constraint =
+        Lower_bound_constraint (
+          Restricted_type_lower_bound (
+            Restricted_type (
+              Unknown_type,
+              Type_restriction (
+                Positive_pattern_set (
+                  Pattern_set.singleton parameter_pattern
+                ),
+                Negative_pattern_set (
+                  Pattern_set.empty
+                )
+              )
+            )
+          ),
+          parameter_type_variable
+        )
+      in
+      let return_constraint =
+        Type_variable_constraint (
+          return_type_variable,
+          return_pattern
+        )
+      in
+      Constraint_set.of_list [parameter_constraint; return_constraint]
+    in
+    let subordinate_closure_constraint_set =
+      List.reduce Constraint_set.union [
+        parameter_return_constraints;
+        body_constraint_set;
+        constraint_set;
+        squelches
+      ]
+    in
+    let closed_subordinate_closure_constraint_set =
+      perform_closure subordinate_closure_constraint_set
+    in
+    is_consistent closed_subordinate_closure_constraint_set
+  | _ ->
+    raise (Invariant_failure "`is_function_pattern_match' called with something other than a function pattern.")
 ;;
 
 (** Perform Function Constraint Closure (i.e. the one with the F superscript).
