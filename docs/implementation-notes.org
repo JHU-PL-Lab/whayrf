@@ -3,6 +3,8 @@
 * Overview
 
   #+BEGIN_SRC plantuml :file images/overview.png :exports results
+    title Overview
+
     "Program" -->[1 · Initial alignment] "Initial constraint set"
     -->[2 · Ordering constraint closure] "Dependency graph constraint set"
     -->[3 · Depedency resolution] "Dependency graph"
@@ -25,51 +27,35 @@
 
 * Constraint closures
 
-  The functions that implement constraint closures don't perform a single step,
-  but the fixpoint (=ω=).
+  - Rules :: Functions that take a constraint set as a parameter and return a
+             constraint set of new constraints.
 
-  They return the new constraints to add to the constraint set, /not/ the input
-  constraint set augmented with the new constraints. This makes it easier to
-  determine when there are no more steps to take---i.e. the closure is complete.
+             Don't perform a single step, but the fixpoint (=ω=).
 
-** Ordering constraint closure (=O= superscript)
+             Return the new constraints to add to the constraint set, /not/
+             the input constraint set augmented with the new constraints. This
+             makes it easier to determine when there are no more steps to
+             take---i.e. the closure is complete.
 
-   #+BEGIN_SRC plantuml :file images/ordering-constraint-closure.png :exports results
-     "Initial constraint set" -->[1 · Non-function constraint closure] "Non-function-closed constraint set"
-     -->[2 · Ordering-function constraint closure] "Ordering-function-closed constraint set"
-     --> ===equal===
-     "Initial constraint set" --> ===equal===
-     if "3 · Equal?" then
-       -->[4.1 · Yes] "Ordering-closed constraint set"
-     else
-       -->[4.2 · No · Non-function constraint closure] "Non-function-closed constraint set"
-     endif
-   #+END_SRC
+  - Closures :: Functions that compose the action of rules or other
+                closures. Respect the same behavior as rules.
 
-   #+RESULTS:
-   [[file:images/ordering-constraint-closure.png]]
+  Some rules and closures take additional parameters (e.g. a dependency
+  graph). They should be /curried in/ before usage.
 
-** Full constraint closure (no superscript)
+  #+BEGIN_SRC plantuml :file images/constraint-closure-dependency-graph.png :exports results
+    title Constraint closure dependency graph
 
-   #+BEGIN_SRC plantuml :file images/full-constraint-closure.png :exports results
-     "Initial constraint set" -->[1 · Non-function constraint closure] "Non-function-closed constraint set"
-     --> ===function_constraint_closure===
-     "Dependency graph" --> ===function_constraint_closure===
-     -->[2 · Function constraint closure] "Function-closed constraint set"
-     --> ===equal===
-     "Initial constraint set" --> ===equal===
-     if "3 · Equal?" then
-       -->[4.1 · Yes] "Fully-closed constraint set"
-     else
-       -->[4.2 · No · Non-function constraint closure] "Non-function-closed constraint set"
-     endif
-   #+END_SRC
+    "A" ->[uses] "B"
 
-   #+RESULTS:
-   [[file:images/full-constraint-closure.png]]
+    "Ordering constraint closure" --> "Non-function constraint closure"
+    "Ordering constraint closure" --> "Ordering-function constraint closure"
 
-** Non-function constraint closure (=N= superscript)
+    "Full constraint closure" --> "Non-function constraint closure"
+    "Full constraint closure" --> "Function constraint closure"
 
-** Ordering-function constraint closure (=OF= superscript)
+    note bottom: Leaves are based directly on rules
+  #+END_SRC
 
-** Function constraint closure (=F= superscript)
+  #+RESULTS:
+  [[file:images/constraint-closure-dependency-graph.png]]
