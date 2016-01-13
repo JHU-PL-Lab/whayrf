@@ -11,8 +11,6 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Ordering-function constraint closure (OF superscript) *)
-
 (** FUNCTION PATTERN SIMULATED CALL *)
 let close_by_function_pattern_simulated_call constraint_set =
   constraint_set
@@ -260,7 +258,8 @@ let close_by_function_simulated_failure constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-let rec ordering_function_closure constraint_set =
+(** Ordering-function constraint closure (OF superscript) *)
+let ordering_function_closure =
   closure_fixpoint
     [
       (* The order is irrelevant for the correctness of the program. *)
@@ -268,5 +267,4 @@ let rec ordering_function_closure constraint_set =
       close_by_function_simulated_success;
       close_by_function_simulated_failure
     ]
-    constraint_set
 ;;

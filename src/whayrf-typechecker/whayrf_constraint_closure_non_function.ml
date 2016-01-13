@@ -11,8 +11,6 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Non-function constraint closure (N superscript) *)
-
 (** TRANSITIVITY *)
 let close_by_transitivity constraint_set =
   constraint_set
@@ -630,7 +628,8 @@ let close_by_unknown_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-let non_function_closure constraint_set =
+(** Non-function constraint closure (N superscript) *)
+let non_function_closure =
   closure_fixpoint
     [
       (* The order is irrelevant for the correctness of the program. *)
@@ -642,5 +641,4 @@ let non_function_closure constraint_set =
       close_by_unknown_application;
       close_by_unknown_projection
     ]
-    constraint_set
 ;;

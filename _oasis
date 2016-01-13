@@ -65,10 +65,11 @@ Library "whayrf-typechecker"
   Path: src/whayrf-typechecker
   Modules:
     Whayrf_consistency,
-    Whayrf_constraint_closure,
+    Whayrf_constraint_closure_full,
     Whayrf_constraint_closure_fixpoint,
     Whayrf_constraint_closure_function,
     Whayrf_constraint_closure_non_function,
+    Whayrf_constraint_closure_ordering,
     Whayrf_constraint_closure_ordering_function,
     Whayrf_dispatch_table,
     Whayrf_function_pattern_search,
