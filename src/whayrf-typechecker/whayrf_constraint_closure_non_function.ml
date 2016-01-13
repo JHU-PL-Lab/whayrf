@@ -10,13 +10,7 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Perform Non-Function Constraint Closure (i.e. the one with the N
-    superscript).
-
-    Most of these functions don't perform a single step, but the fixpoint. They
-    only return the new constraints that can be added to the constraint set, not
-    the already augmented constraint set. This makes it easier to determine when
-    there are no more steps to take (i.e. the closure is finished). *)
+(** Perform Non-Function Constraint Closure (N superscript). *)
 
 (** TRANSITIVITY *)
 let close_by_transitivity constraint_set =
@@ -635,14 +629,10 @@ let close_by_unknown_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-(** Entry point for non-function closure. Perform closure rules until fixpoint
-    (omega) is reached. This returns the augmented constraint set with the new
-    constraints as well as the original constraints. *)
-let rec perform_non_function_closure perform_closure constraint_set =
-  (* The order in which operations happen here is irrelevant for the correct
-       behavior of the program. *)
+let rec non_function_closure constraint_set =
   let closure_functions =
     [
+      (* The order is irrelevant for the correctness of the program. *)
       close_by_transitivity;
       close_by_projection;
       close_by_application;
@@ -652,19 +642,21 @@ let rec perform_non_function_closure perform_closure constraint_set =
       close_by_unknown_projection
     ]
   in
-  let augmented_constraint_set =
+  let new_constraints =
     List.fold_left
       (
-        fun partially_augmented_constraint_set closure_function ->
-          let inferred_constraints = closure_function partially_augmented_constraint_set in
-          Constraint_set.union partially_augmented_constraint_set inferred_constraints
+        fun accumulated_new_constraints closure_function ->
+          Constraint_set.union constraint_set accumulated_new_constraints
+          |> closure_function
+          |> Constraint_set.union accumulated_new_constraints
       )
-      constraint_set
+      Constraint_set.empty
       closure_functions
   in
-  if (Enum.count (Constraint_set.enum constraint_set)) <>
-     (Enum.count (Constraint_set.enum augmented_constraint_set)) then
-    perform_non_function_closure perform_closure augmented_constraint_set
+  if new_constraints = Constraint_set.empty then
+    Constraint_set.empty
   else
-    augmented_constraint_set
+    Constraint_set.union constraint_set new_constraints
+    |> non_function_closure
+    |> Constraint_set.union new_constraints
 ;;
