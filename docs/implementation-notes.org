@@ -25,6 +25,13 @@
 
 * Constraint closures
 
+  The functions that implement constraint closures don't perform a single step,
+  but the fixpoint (=ω=).
+
+  They return the new constraints to add to the constraint set, /not/ the input
+  constraint set augmented with the new constraints. This makes it easier to
+  determine when there are no more steps to take---i.e. the closure is complete.
+
 ** Ordering constraint closure (=O= superscript)
 
    #+BEGIN_SRC plantuml :file images/ordering-constraint-closure.png :exports results
