@@ -5,7 +5,7 @@ open Whayrf_constraint_closure_function;;
 open Whayrf_constraint_closure_non_function;;
 
 (** Full constraint closure (no superscript) *)
-let full_closure dependency_graph =
+let rec full_closure dependency_graph =
   closure_fixpoint
     [
       (* The order _is relevant_ for the correct behavior of the program.
@@ -20,6 +20,6 @@ let full_closure dependency_graph =
          This is a slight divergence on the presentation on the paper, but for a
          good reason: it eliminates repetition of work and increases performance. *)
       non_function_closure;
-      function_closure dependency_graph
+      function_closure (full_closure dependency_graph) dependency_graph
     ]
 ;;
