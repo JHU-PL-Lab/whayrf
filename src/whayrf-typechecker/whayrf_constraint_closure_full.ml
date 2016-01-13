@@ -8,12 +8,11 @@ open Whayrf_constraint_closure_non_function;;
 let full_closure dependency_graph =
   closure_fixpoint
     [
-      (* The order in which operations happen here is fundamental for the correct
-         behavior of the program.
+      (* The order _is relevant_ for the correct behavior of the program.
 
-         This is because, on function closure, we perform a subordinate closure. And
-         we don't want the subordinate closure doing non-function closure steps that
-         the main closure should have done.
+         On function closure we perform a subordinate closure. And we don't want
+         the subordinate closure doing non-function closure steps that the main
+         closure should have done.
 
          The solution is to only enter function closure steps after finishing the
          non-function closure.
