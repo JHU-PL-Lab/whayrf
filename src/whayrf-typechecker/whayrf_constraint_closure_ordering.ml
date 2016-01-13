@@ -8,7 +8,9 @@ open Whayrf_constraint_closure_ordering_function;;
 let ordering_closure =
   closure_fixpoint
     [
-      (* The order _is relevant_ for the correctness of the program. *)
+      (* The order _is relevant_ for the correctness of the program.
+
+         It's the same as the order in Full constraint closure. *)
       non_function_closure;
       ordering_function_closure
     ]
