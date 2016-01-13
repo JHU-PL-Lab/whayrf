@@ -2,6 +2,7 @@ open Batteries;;
 
 open Whayrf_ast;;
 open Whayrf_consistency;;
+open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_initial_alignment;;
 open Whayrf_notation;;
 open Whayrf_pattern_subsumption;;
@@ -10,7 +11,7 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Perform Non-Function Constraint Closure (N superscript). *)
+(** Non-function constraint closure (N superscript) *)
 
 (** TRANSITIVITY *)
 let close_by_transitivity constraint_set =
@@ -629,8 +630,8 @@ let close_by_unknown_projection constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-let rec non_function_closure constraint_set =
-  let closure_functions =
+let non_function_closure constraint_set =
+  closure_fixpoint
     [
       (* The order is irrelevant for the correctness of the program. *)
       close_by_transitivity;
@@ -641,22 +642,5 @@ let rec non_function_closure constraint_set =
       close_by_unknown_application;
       close_by_unknown_projection
     ]
-  in
-  let new_constraints =
-    List.fold_left
-      (
-        fun accumulated_new_constraints closure_function ->
-          Constraint_set.union constraint_set accumulated_new_constraints
-          |> closure_function
-          |> Constraint_set.union accumulated_new_constraints
-      )
-      Constraint_set.empty
-      closure_functions
-  in
-  if new_constraints = Constraint_set.empty then
-    Constraint_set.empty
-  else
-    Constraint_set.union constraint_set new_constraints
-    |> non_function_closure
-    |> Constraint_set.union new_constraints
+    constraint_set
 ;;

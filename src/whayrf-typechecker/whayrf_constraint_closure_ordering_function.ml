@@ -2,6 +2,7 @@ open Batteries;;
 
 open Whayrf_ast;;
 open Whayrf_consistency;;
+open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_initial_alignment;;
 open Whayrf_notation;;
 open Whayrf_pattern_subsumption;;
@@ -10,13 +11,7 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Perform Ordering Inference Constraint Closure (i.e. the one with the OF
-    superscript).
-
-    Most of these functions don't perform a single step, but the fixpoint. They
-    only return the new constraints that can be added to the constraint set, not
-    the already augmented constraint set. This makes it easier to determine when
-    there are no more steps to take (i.e. the closure is finished). *)
+(** Ordering-function constraint closure (OF superscript) *)
 
 (** FUNCTION PATTERN SIMULATED CALL *)
 let close_by_function_pattern_simulated_call constraint_set =
@@ -265,32 +260,13 @@ let close_by_function_simulated_failure constraint_set =
   |> Constraint_set.of_enum
 ;;
 
-(** Entry point for Ordering Inference Constraint Closure. Perform closure rules
-    until fixpoint (omega) is reached. This returns the augmented constraint set
-    with the new constraints as well as the original constraints. *)
-let rec perform_ordering_inference_closure perform_closure constraint_set =
-  (* The order in which operations happen here is irrelevant for the correct
-       behavior of the program. *)
-  let closure_functions =
+let rec ordering_function_closure constraint_set =
+  closure_fixpoint
     [
+      (* The order is irrelevant for the correctness of the program. *)
       close_by_function_pattern_simulated_call;
       close_by_function_simulated_success;
       close_by_function_simulated_failure
     ]
-  in
-  let augmented_constraint_set =
-    List.fold_left
-      (
-        fun partially_augmented_constraint_set closure_function ->
-          let inferred_constraints = closure_function partially_augmented_constraint_set in
-          Constraint_set.union partially_augmented_constraint_set inferred_constraints
-      )
-      constraint_set
-      closure_functions
-  in
-  if (Enum.count (Constraint_set.enum constraint_set)) <>
-     (Enum.count (Constraint_set.enum augmented_constraint_set)) then
-    perform_ordering_inference_closure perform_closure augmented_constraint_set
-  else
-    augmented_constraint_set
+    constraint_set
 ;;
