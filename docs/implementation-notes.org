@@ -46,6 +46,8 @@
 
    #+BEGIN_SRC plantuml :file images/full-constraint-closure.png :exports results
      "Initial constraint set" -->[1 · Non-function constraint closure] "Non-function-closed constraint set"
+     --> ===function_constraint_closure===
+     "Dependency graph" --> ===function_constraint_closure===
      -->[2 · Function constraint closure] "Function-closed constraint set"
      --> ===equal===
      "Initial constraint set" --> ===equal===
