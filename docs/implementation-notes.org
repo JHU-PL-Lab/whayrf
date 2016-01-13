@@ -52,10 +52,9 @@
      if "3 · Equal?" then
        -->[4.1 · Yes] "Fully-closed constraint set"
      else
-       -->[4.2 · No · Function constraint closure] "Function-closed constraint set"
+       -->[4.2 · No · Non-function constraint closure] "Non-function-closed constraint set"
      endif
    #+END_SRC
 
    #+RESULTS:
    [[file:images/full-constraint-closure.png]]
-
