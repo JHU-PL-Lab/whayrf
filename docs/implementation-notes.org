@@ -1,0 +1,24 @@
+#+TITLE: Implementation notes
+
+* Overview
+
+  #+BEGIN_SRC plantuml :file images/overview.png :exports results
+    "Program" -->[Initial alignment] "Initial constraint set"
+    -->[Ordering closure] "Dependency graph constraint set"
+    -->[Depedency resolution] "Dependency graph"
+    --> ===full_closure===
+    "Initial constraint set" --> ===full_closure===
+    ===full_closure=== ->[Full closure] "Full constraint set"
+    if "Immediately consistent?" then
+      ->[No · Typefail] (*)
+    else
+      -->[Yes · Typecheck · Type dispatch relation extraction] "Type dispatch relation"
+      -->[Expression dispatch relation extraction] "Expression dispatch relation"
+      --> ===evaluation===
+      "Program" --> ===evaluation===
+      ===evaluation=== -->[Evaluation] "Computation result"
+    endif
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:images/overview.png]]
