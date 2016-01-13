@@ -14,18 +14,6 @@ open Whayrf_utils;;
 
 let logger = make_logger "Whayrf_function_pattern_search";;
 
-(** The function_type-pattern pair used in the main paper for cycle detection
-    and returned by FUN PATS. *)
-type function_pattern_matching_case = Function_pattern_matching_case of function_type * pattern;;
-
-module Function_pattern_matching_case_order =
-struct
-  type t = function_pattern_matching_case
-  let compare = compare
-end
-;;
-module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
-
 (** Function Pattern Search looks for all pairs of function types and patterns
     that can be explored by subordinate closures. It comes in three flavors, one
     that takes a raw type (ttype), one that takes a restricted type and another

@@ -75,3 +75,15 @@ end
 and Constraint_set : (Set.S with type elt = Types.tconstraint) = Set.Make(Constraint_order);;
 
 include Types;;
+
+(** The function_type-pattern pair used in the main paper for ordering, cycle
+    detection and returned by FUN PATS. *)
+type function_pattern_matching_case = Function_pattern_matching_case of function_type * pattern;;
+
+module Function_pattern_matching_case_order =
+struct
+  type t = function_pattern_matching_case
+  let compare = compare
+end
+;;
+module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
