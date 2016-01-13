@@ -25,7 +25,7 @@
 
 * Constraint closures
 
-** Ordering constraint closure
+** Ordering constraint closure (=O= superscript)
 
    #+BEGIN_SRC plantuml :file images/ordering-constraint-closure.png :exports results
      "Initial constraint set" -->[1 · Non-function constraint closure] "Non-function-closed constraint set"
@@ -42,7 +42,7 @@
    #+RESULTS:
    [[file:images/ordering-constraint-closure.png]]
 
-** Full constraint closure
+** Full constraint closure (no superscript)
 
    #+BEGIN_SRC plantuml :file images/full-constraint-closure.png :exports results
      "Initial constraint set" -->[1 · Non-function constraint closure] "Non-function-closed constraint set"
@@ -60,3 +60,9 @@
 
    #+RESULTS:
    [[file:images/full-constraint-closure.png]]
+
+** Non-function constraint closure (=N= superscript)
+
+** Ordering-function constraint closure (=OF= superscript)
+
+** Function constraint closure (=F= superscript)
