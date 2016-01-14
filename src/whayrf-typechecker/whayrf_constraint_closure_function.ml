@@ -122,7 +122,13 @@ let function_closure full_closure dependency_graph constraint_set =
           None
         else
           Some (
-            (* Call CHECK, as per FUNCTION CLOSURE in the appendix *)
+            (* Call CHECK, as per FUNCTION CLOSURE in the appendix. CHECK in the
+               appendix and FUN MATCH in the main paper are similar, except that
+               CHECK expects squelches to already be in the constraint set,
+               while FUN MATCH adds them itself.
+
+               CHECK is preferable, in this case, because the function pattern
+               matching cases are already calculated at this point. *)
             let squelch_constraints =
               function_pattern_matching_cases
               |> Function_pattern_matching_case_set.enum
