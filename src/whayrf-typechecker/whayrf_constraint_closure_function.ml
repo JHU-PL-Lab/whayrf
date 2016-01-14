@@ -19,7 +19,7 @@ let logger = make_logger "Whayrf_constraint_closure_function";;
 
 (* CHECK *)
 let check
-  full_closure
+    full_closure
     (
       Function_type (
         parameter_type_variable,
