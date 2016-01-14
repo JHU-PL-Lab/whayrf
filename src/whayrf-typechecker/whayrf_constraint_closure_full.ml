@@ -5,7 +5,7 @@ open Whayrf_constraint_closure_function;;
 open Whayrf_constraint_closure_non_function;;
 
 (** Full constraint closure (no superscript) *)
-let rec full_closure dependency_graph =
+let rec full_closure dependency_graph constraint_set =
   closure_fixpoint
     [
       (* The order _is relevant_ for the correct behavior of the program.
@@ -22,4 +22,5 @@ let rec full_closure dependency_graph =
       non_function_closure;
       function_closure (full_closure dependency_graph) dependency_graph
     ]
+    constraint_set
 ;;

@@ -47,6 +47,12 @@ let typecheck expression =
   let dependency_graph =
     dependency_resolution dependency_graph_constraint_set
   in
+  logger `trace
+    (sprintf
+      "Dependency graph `%s'."
+      (pretty_dependency_graph dependency_graph)
+    )
+  ;
   (* Full constraint closure *)
   let full_constraint_set =
     Constraint_set.union initial_constraint_set @@

@@ -1,4 +1,5 @@
 open Batteries;;
+open Printf;;
 
 open Whayrf_ast;;
 open Whayrf_ast_pretty;;
@@ -18,7 +19,7 @@ let logger = make_logger "Whayrf_constraint_closure_function";;
 
 (* CHECK *)
 let check
-    full_closure
+  full_closure
     (
       Function_type (
         parameter_type_variable,
@@ -81,6 +82,13 @@ let check
     An hybrid from Function Closure Rules in the main paper and FUNCTION CLOSURE
     in the appendix. *)
 let function_closure full_closure dependency_graph constraint_set =
+  logger `trace
+    (sprintf
+       "`function_closure' called with `constraint_set' = `%s'."
+       (pretty_constraint_set constraint_set)
+    )
+  ;
+
   (* Look for function_type-pattern pairs, as per Function Closure Rules in the
      main paper. *)
   let function_pattern_matching_cases =
