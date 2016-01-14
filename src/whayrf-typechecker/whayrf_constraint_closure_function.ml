@@ -4,6 +4,7 @@ open Printf;;
 open Whayrf_ast;;
 open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
+open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_constraint_closure_non_function;;
 open Whayrf_function_pattern_search;;
 open Whayrf_initial_alignment;;
@@ -88,101 +89,103 @@ let ready function_pattern_matching_case dependency_graph constraint_set =
     An hybrid from Function Closure Rules in the main paper and FUNCTION CLOSURE
     in the appendix. *)
 let function_closure full_closure dependency_graph constraint_set =
-  logger `trace
-    (sprintf
-       "`function_closure' called with `constraint_set' = `%s'."
-       (pretty_constraint_set constraint_set)
-    )
-  ;
-
-  (* Look for function_type-pattern pairs, as per Function Closure Rules in the
-     main paper. *)
-  let function_pattern_matching_cases =
-    function_pattern_search constraint_set
-  in
-  function_pattern_matching_cases
-  |> Function_pattern_matching_case_set.enum
-  |> Enum.filter_map
-    (
-      fun (
-        (
-          Function_pattern_matching_case (
-            function_type,
-            pattern
-          )
-        ) as function_pattern_matching_case
-      ) ->
-        (* Skip over squelch constraints and the function_type-pattern pairs
-           that are not READY (i.e., their dependencies are not resolved). *)
-        if (
-          Constraint_set.mem
-            (
-              Function_pattern_matching_constraint (
-                Function_pattern_matching_constraint_squelch (
-                  function_type,
-                  pattern
+  let step constraint_set =
+    logger `trace
+      (sprintf
+         "`function_closure' called with `constraint_set' = `%s'."
+         (pretty_constraint_set constraint_set)
+      )
+    ;
+    (* Look for function_type-pattern pairs, as per Function Closure Rules in the
+       main paper. *)
+    let function_pattern_matching_cases =
+      function_pattern_search constraint_set
+    in
+    function_pattern_matching_cases
+    |> Function_pattern_matching_case_set.enum
+    |> Enum.filter_map
+      (
+        fun (
+          (
+            Function_pattern_matching_case (
+              function_type,
+              pattern
+            )
+          ) as function_pattern_matching_case
+        ) ->
+          (* Skip over squelch constraints and the function_type-pattern pairs
+             that are not READY (i.e., their dependencies are not resolved). *)
+          if (
+            Constraint_set.mem
+              (
+                Function_pattern_matching_constraint (
+                  Function_pattern_matching_constraint_squelch (
+                    function_type,
+                    pattern
+                  )
                 )
               )
-            )
-            constraint_set
-        ) || (not
-               (ready function_pattern_matching_case dependency_graph constraint_set)
-             )
-        then
-          None
-        else
-          Some (
-            (* Call CHECK, as per FUNCTION CLOSURE in the appendix. CHECK in the
-               appendix and FUN MATCH in the main paper are similar, except that
-               CHECK expects squelches to already be in the constraint set,
-               while FUN MATCH adds them itself.
+              constraint_set
+          ) || (not
+                  (ready function_pattern_matching_case dependency_graph constraint_set)
+               )
+          then
+            None
+          else
+            Some (
+              (* Call CHECK, as per FUNCTION CLOSURE in the appendix. CHECK in the
+                 appendix and FUN MATCH in the main paper are similar, except that
+                 CHECK expects squelches to already be in the constraint set,
+                 while FUN MATCH adds them itself.
 
-               CHECK is preferable, in this case, because the function pattern
-               matching cases are already calculated at this point. *)
-            let squelch_constraints =
-              function_pattern_matching_cases
-              |> Function_pattern_matching_case_set.enum
-              |> Enum.map
-                (
-                  fun (Function_pattern_matching_case (function_type, pattern)) ->
-                    Function_pattern_matching_constraint (
-                      Function_pattern_matching_constraint_squelch (
-                        function_type, pattern
+                 CHECK is preferable, in this case, because the function pattern
+                 matching cases are already calculated at this point. *)
+              let squelch_constraints =
+                function_pattern_matching_cases
+                |> Function_pattern_matching_case_set.enum
+                |> Enum.map
+                  (
+                    fun (Function_pattern_matching_case (function_type, pattern)) ->
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_squelch (
+                          function_type, pattern
+                        )
                       )
-                    )
+                  )
+                |> Constraint_set.of_enum
+              in
+              if (
+                check
+                  full_closure
+                  dependency_graph
+                  function_type
+                  (
+                    Constraint_set.union
+                      constraint_set
+                      squelch_constraints
+                  )
+                  pattern
+              )
+              (* Generate positive and negative mach constraints, as per Function
+                 Closure Rules in the main paper and FUNCTION CLOSURE in the appendix. *)
+              then
+                Function_pattern_matching_constraint (
+                  Function_pattern_matching_constraint_positive (
+                    function_type,
+                    pattern
+                  )
                 )
-              |> Constraint_set.of_enum
-            in
-            if (
-              check
-                full_closure
-                dependency_graph
-                function_type
-                (
-                  Constraint_set.union
-                    constraint_set
-                    squelch_constraints
+              else
+                Function_pattern_matching_constraint (
+                  Function_pattern_matching_constraint_negative (
+                    function_type,
+                    pattern
+                  )
                 )
-                pattern
             )
-            (* Generate positive and negative mach constraints, as per Function
-               Closure Rules in the main paper and FUNCTION CLOSURE in the appendix. *)
-            then
-              Function_pattern_matching_constraint (
-                Function_pattern_matching_constraint_positive (
-                  function_type,
-                  pattern
-                )
-              )
-            else
-              Function_pattern_matching_constraint (
-                Function_pattern_matching_constraint_negative (
-                  function_type,
-                  pattern
-                )
-              )
-          )
-    )
-  |> Constraint_set.of_enum
-  |> Constraint_set.union constraint_set
+      )
+    |> Constraint_set.of_enum
+    |> Constraint_set.union constraint_set
+  in
+  closure_fixpoint [step] constraint_set
 ;;
