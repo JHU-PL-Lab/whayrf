@@ -27,15 +27,13 @@
 
 * Constraint closures
 
-  - Rules :: Functions that take a constraint set as a parameter and return a
-             constraint set of new constraints.
+  - Rules :: Functions that take a constraint set as a parameter and return an
+             augmented constraint set with new constraints.
 
              Don't perform a single step, but the fixpoint (=ω=).
 
-             Return the new constraints to add to the constraint set, /not/
-             the input constraint set augmented with the new constraints. This
-             makes it easier to determine when there are no more steps to
-             take---i.e. the closure is complete.
+             Return the input constraint set augmented with the new constraints,
+             /not/ only the new constraints.
 
   - Closures :: Functions that compose the action of rules or other
                 closures. Respect the same behavior as rules.
