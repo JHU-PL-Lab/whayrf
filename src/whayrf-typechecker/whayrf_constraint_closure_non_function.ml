@@ -54,6 +54,7 @@ let close_by_transitivity constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** PROJECTION *)
@@ -164,6 +165,7 @@ let close_by_projection constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** APPLICATION *)
@@ -249,6 +251,7 @@ let close_by_application constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** CONDITIONAL SUCCESS *)
@@ -357,6 +360,7 @@ let close_by_conditional_success constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** CONDITIONAL FAILURE *)
@@ -465,6 +469,7 @@ let close_by_conditional_failure constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** UNKNOWN APPLICATION *)
@@ -566,6 +571,7 @@ let close_by_unknown_application constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** UNKNOWN PROJECTION *)
@@ -630,6 +636,7 @@ let close_by_unknown_projection constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** Non-function constraint closure (N superscript) *)

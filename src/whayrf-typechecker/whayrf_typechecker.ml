@@ -34,7 +34,6 @@ let typecheck expression =
   ;
   (* Ordering constraint closure *)
   let dependency_graph_constraint_set =
-    Constraint_set.union initial_constraint_set @@
     ordering_closure initial_constraint_set
   in
   logger `trace
@@ -55,7 +54,6 @@ let typecheck expression =
   ;
   (* Full constraint closure *)
   let full_constraint_set =
-    Constraint_set.union initial_constraint_set @@
     full_closure dependency_graph initial_constraint_set
   in
   logger `trace

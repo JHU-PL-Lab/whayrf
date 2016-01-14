@@ -167,4 +167,5 @@ let function_closure full_closure dependency_graph constraint_set =
           )
     )
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;

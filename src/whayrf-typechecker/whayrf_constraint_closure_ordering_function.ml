@@ -98,6 +98,7 @@ let close_by_function_pattern_simulated_call constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** FUNCTION PATTERN SIMULATED SUCCESS *)
@@ -179,6 +180,7 @@ let close_by_function_simulated_success constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** FUNCTION PATTERN SIMULATED FAILURE *)
@@ -260,6 +262,7 @@ let close_by_function_simulated_failure constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** Ordering-function constraint closure (OF superscript) *)

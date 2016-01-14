@@ -23,27 +23,20 @@ let rec closure_fixpoint rules constraint_set =
     )
   ;
 
-  let new_constraints =
+  let augmented_constraint_set =
     List.fold_left
-      (
-        fun accumulated_new_constraints rule ->
-          Constraint_set.union constraint_set accumulated_new_constraints
-          |> rule
-          |> Constraint_set.union accumulated_new_constraints
-      )
-      Constraint_set.empty
+      (|>)
+      constraint_set
       rules
   in
   logger `trace
     (sprintf
-       "`closure_fixpoint' found `new_constraints' = `%s'."
-       (pretty_constraint_set new_constraints)
+       "`closure_fixpoint' `augmented_constraint_set' = `%s'."
+       (pretty_constraint_set augmented_constraint_set)
     )
   ;
-  if new_constraints = Constraint_set.empty then
-    Constraint_set.empty
+  if Constraint_set.equal constraint_set augmented_constraint_set then
+    constraint_set
   else
-    Constraint_set.union constraint_set new_constraints
-    |> closure_fixpoint rules
-    |> Constraint_set.union new_constraints
+    closure_fixpoint rules augmented_constraint_set
 ;;
