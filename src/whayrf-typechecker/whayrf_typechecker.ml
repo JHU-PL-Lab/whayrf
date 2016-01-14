@@ -18,30 +18,44 @@ open Whayrf_types_pretty;;
 let logger = Whayrf_logger.make_logger "Whayrf_typechecker";;
 
 let typecheck expression =
+  logger `trace
+    (sprintf
+      "Typechecking expression `%s'."
+      (pretty_expr expression)
+    )
+  ;
   (* Initial alignment. *)
   let Constrained_type (_, initial_constraint_set) = initial_align_expr expression in
   logger `trace
     (sprintf
-      "Initial alignment of %s yields constraints %s"
-      (pretty_expr expression) (pretty_constraint_set initial_constraint_set)
+      "Initial constraint set `%s'."
+      (pretty_constraint_set initial_constraint_set)
     )
   ;
   (* Ordering constraint closure *)
   let dependency_graph_constraint_set =
+    Constraint_set.union initial_constraint_set @@
     ordering_closure initial_constraint_set
   in
+  logger `trace
+    (sprintf
+      "Dependency graph constraint set `%s'."
+      (pretty_constraint_set dependency_graph_constraint_set)
+    )
+  ;
   (* Dependency resolution *)
   let dependency_graph =
     dependency_resolution dependency_graph_constraint_set
   in
   (* Full constraint closure *)
   let full_constraint_set =
+    Constraint_set.union initial_constraint_set @@
     full_closure dependency_graph initial_constraint_set
   in
   logger `trace
     (sprintf
-      "Full constraint closure yields constraints %s"
-      (pretty_constraint_set full_constraint_set)
+      "Full constraint set `%s'."
+      (pretty_constraint_set dependency_graph_constraint_set)
     )
   ;
   (* Immediately consistent? *)
