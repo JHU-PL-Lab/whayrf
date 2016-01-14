@@ -20,6 +20,7 @@ let logger = make_logger "Whayrf_constraint_closure_function";;
 (* CHECK *)
 let check
     full_closure
+    dependency_graph
     (
       Function_type (
         parameter_type_variable,
@@ -69,12 +70,17 @@ let check
     in
     logger `trace ("Performing subordinate closure with constraint set: " ^ pretty_constraint_set constraint_set_to_test);
     let closed_constraint_set_to_test =
-      full_closure constraint_set_to_test
+      full_closure dependency_graph constraint_set_to_test
     in
     is_consistent closed_constraint_set_to_test
 
   | _ ->
     raise @@ Invariant_failure "`check' called with non-function pattern."
+;;
+
+(* TODO: Not implemented. *)
+let ready function_pattern_matching_case dependency_graph constraint_set =
+  true
 ;;
 
 (** Function constraint closure (F superscript)
@@ -99,13 +105,15 @@ let function_closure full_closure dependency_graph constraint_set =
   |> Enum.filter_map
     (
       fun (
-        Function_pattern_matching_case (
-          function_type,
-          pattern
-        )
+        (
+          Function_pattern_matching_case (
+            function_type,
+            pattern
+          )
+        ) as function_pattern_matching_case
       ) ->
-        (* Skip over squelch constraints as per Function Closure Rules in the
-           main paper. *)
+        (* Skip over squelch constraints and the function_type-pattern pairs
+           that are not READY (i.e., their dependencies are not resolved). *)
         if (
           Constraint_set.mem
             (
@@ -117,7 +125,9 @@ let function_closure full_closure dependency_graph constraint_set =
               )
             )
             constraint_set
-        )
+        ) || (not
+               (ready function_pattern_matching_case dependency_graph constraint_set)
+             )
         then
           None
         else
@@ -146,6 +156,7 @@ let function_closure full_closure dependency_graph constraint_set =
             if (
               check
                 full_closure
+                dependency_graph
                 function_type
                 (
                   Constraint_set.union

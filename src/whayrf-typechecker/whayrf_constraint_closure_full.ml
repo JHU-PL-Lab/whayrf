@@ -31,7 +31,7 @@ let rec full_closure dependency_graph constraint_set =
          This is a slight divergence on the presentation on the paper, but for a
          good reason: it eliminates repetition of work and increases performance. *)
       non_function_closure;
-      function_closure (full_closure dependency_graph) dependency_graph
+      function_closure full_closure dependency_graph
     ]
     constraint_set
 ;;
