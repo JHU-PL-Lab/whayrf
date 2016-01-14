@@ -636,7 +636,7 @@ let close_by_unknown_projection constraint_set =
 let non_function_closure constraint_set =
   logger `trace
     (sprintf
-       "`function_closure' called with `constraint_set' = `%s'."
+       "`non_function_closure' called with `constraint_set' = `%s'."
        (pretty_constraint_set constraint_set)
     )
   ;

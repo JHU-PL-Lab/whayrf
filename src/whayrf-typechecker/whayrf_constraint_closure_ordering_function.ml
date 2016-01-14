@@ -1,15 +1,19 @@
 open Batteries;;
+open Printf;;
 
 open Whayrf_ast;;
 open Whayrf_consistency;;
 open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_initial_alignment;;
 open Whayrf_notation;;
+open Whayrf_logger;;
 open Whayrf_pattern_subsumption;;
 open Whayrf_type_compatibility;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
+
+let logger = make_logger "Whayrf_constraint_closure_ordering_function";;
 
 (** FUNCTION PATTERN SIMULATED CALL *)
 let close_by_function_pattern_simulated_call constraint_set =
@@ -259,7 +263,13 @@ let close_by_function_simulated_failure constraint_set =
 ;;
 
 (** Ordering-function constraint closure (OF superscript) *)
-let ordering_function_closure =
+let ordering_function_closure constraint_set =
+  logger `trace
+    (sprintf
+       "`ordering_function_closure' called with `constraint_set' = `%s'."
+       (pretty_constraint_set constraint_set)
+    )
+  ;
   closure_fixpoint
     [
       (* The order is irrelevant for the correctness of the program. *)
@@ -267,4 +277,5 @@ let ordering_function_closure =
       close_by_function_simulated_success;
       close_by_function_simulated_failure
     ]
+    constraint_set
 ;;
