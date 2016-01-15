@@ -86,3 +86,12 @@ and pretty_type_restriction (
 and pretty_restricted_type (Restricted_type(ttype, type_restriction)) =
   pretty_ttype ttype ^ "|" ^ pretty_type_restriction type_restriction
 ;;
+
+let pretty_function_pattern_matching_case (
+    Function_pattern_matching_case (
+      function_type,
+      pattern
+    )
+  ) =
+  "<" ^ pretty_function_type function_type ^ ", " ^ pretty_pattern pattern ^ ">"
+;;
