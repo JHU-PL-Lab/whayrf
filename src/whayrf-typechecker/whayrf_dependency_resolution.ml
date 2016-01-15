@@ -3,9 +3,12 @@ open Batteries;;
 open Whayrf_ast;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
+open Whayrf_utils;;
 
-type dependency_graph = Dependency_graph of
-    Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t;;
+type dependency_graph =
+  | Dependency_graph of
+      Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t
+;;
 
 let pretty_dependency_graph (
     Dependency_graph dependency_graph_elements
@@ -40,16 +43,26 @@ let pretty_dependency_graph (
   ) ^ "}"
 ;;
 
+let dependencies function_pattern_matching_case (
+    (Dependency_graph dependency_graph_elements)
+    as dependency_graph
+  ) =
+  if Function_pattern_matching_case_map.mem function_pattern_matching_case dependency_graph_elements then
+    Function_pattern_matching_case_map.find function_pattern_matching_case dependency_graph_elements
+  else
+    raise @@ Invariant_failure (
+      "`function_pattern_matching_case' = `" ^
+      pretty_function_pattern_matching_case function_pattern_matching_case ^
+      "' not found in `dependency_graph' = `" ^
+      pretty_dependency_graph dependency_graph ^ "'."
+    )
+;;
+
 (* TODO: Not implemented. *)
 let dependency_resolution constraint_set =
   Dependency_graph (
     Function_pattern_matching_case_map.empty
   )
-;;
-
-(* TODO: Not implemented. *)
-let dependencies function_pattern_matching_case dependency_graph =
-  Function_pattern_matching_case_set.empty
 ;;
 
 (* TODO: Not implemented. *)
