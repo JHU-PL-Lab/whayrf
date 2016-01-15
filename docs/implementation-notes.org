@@ -4,17 +4,50 @@
 
   #+BEGIN_SRC dot :file images/overview.png :exports results
     digraph overview {
+
+      ////////////////
+      // Typography //
+      ////////////////
+
       fontname = "Open Sans";
+      node [fontname = "Open Sans", fontsize = 10];
+      edge [fontname = "Open Sans", fontsize = 10];
+
+      //////////////////
+      // Colorschemes //
+      //////////////////
+
+      // Solarized Light.
+
+      // bgcolor = "#fdf6e3";
+      // color = "#657b83";
+      // fontcolor = "#657b83";
+      // node [color = "#657b83", fontcolor = "#657b83"];
+      // edge [color = "#657b83", fontcolor = "#657b83"];
+
+      // Plain black-on-white.
+
+      bgcolor = transparent;
       color = "#333333";
       fontcolor = "#333333";
-      node [fontname = "Open Sans", fontsize = 10, shape = box, style = "rounded", color = "#333333", fontcolor = "#333333"];
-      edge [fontname = "Open Sans", fontsize = 10, color = "#333333", fontcolor = "#333333"];
+      node [color = "#333333", fontcolor = "#333333"];
+      edge [color = "#333333", fontcolor = "#333333"];
+
+      ///////////////
+      // Box style //
+      ///////////////
+
+      style = "rounded";
+      node [shape = box, style = "rounded"];
+
+      ///////////
+      // Graph //
+      ///////////
 
       "Program" -> "Initial constraint set" [label = " 1 · Initial alignment"];
 
       subgraph cluster_typechecking {
         label = "Typechecking";
-        style = "rounded";
 
         "Initial constraint set" -> "Dependency graph constraint set" [label = " 2 · Ordering constraint closure"];
         "Dependency graph constraint set" -> "Dependency graph" [label = " 3 · Depedency resolution"];
@@ -57,19 +90,67 @@
   Some rules and closures take additional parameters (e.g. a dependency
   graph). They should be /curried in/ before usage.
 
-  #+BEGIN_SRC plantuml :file images/constraint-closure-dependency-graph.png :exports results
-    title Constraint closure dependency graph
+** Constraint closure dependency graph
 
-    "A" ->[uses] "B"
+   #+BEGIN_SRC dot :file images/constraint-closure-dependency-graph.png :exports results
+     digraph overview {
 
-    "Ordering constraint closure" --> "Non-function constraint closure"
-    "Ordering constraint closure" --> "Ordering-function constraint closure"
+       ////////////////
+       // Typography //
+       ////////////////
 
-    "Full constraint closure" --> "Non-function constraint closure"
-    "Full constraint closure" --> "Function constraint closure"
+       fontname = "Open Sans";
+       node [fontname = "Open Sans", fontsize = 10];
+       edge [fontname = "Open Sans", fontsize = 10];
 
-    note bottom: Leaves are based directly on rules
-  #+END_SRC
+       //////////////////
+       // Colorschemes //
+       //////////////////
 
-  #+RESULTS:
-  [[file:images/constraint-closure-dependency-graph.png]]
+       // Solarized Light.
+
+       // bgcolor = "#fdf6e3";
+       // color = "#657b83";
+       // fontcolor = "#657b83";
+       // node [color = "#657b83", fontcolor = "#657b83"];
+       // edge [color = "#657b83", fontcolor = "#657b83"];
+
+       // Plain black-on-white.
+
+       bgcolor = transparent;
+       color = "#333333";
+       fontcolor = "#333333";
+       node [color = "#333333", fontcolor = "#333333"];
+       edge [color = "#333333", fontcolor = "#333333"];
+
+       ///////////////
+       // Box style //
+       ///////////////
+
+       style = "rounded";
+       node [shape = box, style = "rounded"];
+
+       ///////////
+       // Graph //
+       ///////////
+
+       subgraph cluster_legend {
+         label = "Legend";
+
+         // rankdir = LR;
+
+         "A" -> "B" [label = " uses"];
+       }
+
+       "Ordering constraint closure" -> "Non-function constraint closure";
+       "Ordering constraint closure" -> "Ordering-function constraint closure";
+
+       "Full constraint closure" -> "Non-function constraint closure";
+       "Full constraint closure" -> "Function constraint closure";
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:images/constraint-closure-dependency-graph.png]]
+
+   Leaves are based directly on rules.
