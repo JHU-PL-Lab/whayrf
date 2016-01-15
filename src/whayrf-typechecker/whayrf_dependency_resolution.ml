@@ -1,6 +1,7 @@
 open Batteries;;
 
 open Whayrf_ast;;
+open Whayrf_function_pattern_search;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
@@ -61,7 +62,17 @@ let dependencies function_pattern_matching_case (
 (* TODO: Not implemented. *)
 let dependency_resolution constraint_set =
   Dependency_graph (
-    Function_pattern_matching_case_map.empty
+    function_pattern_search constraint_set
+    |> Function_pattern_matching_case_set.enum
+    |> Enum.map
+      (
+        fun function_pattern_matching_case ->
+          (
+            function_pattern_matching_case,
+            Function_pattern_matching_case_set.empty
+          )
+      )
+    |> Function_pattern_matching_case_map.of_enum
   )
 ;;
 
