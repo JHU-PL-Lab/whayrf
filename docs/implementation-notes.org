@@ -17,14 +17,6 @@
       // Colorschemes //
       //////////////////
 
-      // Solarized Light.
-
-      // bgcolor = "#fdf6e3";
-      // color = "#657b83";
-      // fontcolor = "#657b83";
-      // node [color = "#657b83", fontcolor = "#657b83"];
-      // edge [color = "#657b83", fontcolor = "#657b83"];
-
       // Plain black-on-white.
 
       bgcolor = transparent;
@@ -106,14 +98,6 @@
        //////////////////
        // Colorschemes //
        //////////////////
-
-       // Solarized Light.
-
-       // bgcolor = "#fdf6e3";
-       // color = "#657b83";
-       // fontcolor = "#657b83";
-       // node [color = "#657b83", fontcolor = "#657b83"];
-       // edge [color = "#657b83", fontcolor = "#657b83"];
 
        // Plain black-on-white.
 
