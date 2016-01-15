@@ -8,10 +8,16 @@ open Whayrf_types_utils;;
 open Whayrf_utils;;
 
 (* TODO: Not implemented. *)
-let before
+(** BEFORE (≺C) *)
+let is_dependency
     potential_dependency_function_pattern_matching_case
     dependent_function_pattern_matching_case
     constraint_set =
+  (
+    (* A `function_pattern_matching_case' cannot be a dependency of itself. *)
+    dependent_function_pattern_matching_case <>
+    potential_dependency_function_pattern_matching_case
+  ) &&
   false
 ;;
 
@@ -32,7 +38,7 @@ let dependency_resolution constraint_set =
             |> Enum.filter
               (
                 fun potential_dependency_function_pattern_matching_case ->
-                  before
+                  is_dependency
                     potential_dependency_function_pattern_matching_case
                     dependent_function_pattern_matching_case
                     constraint_set
