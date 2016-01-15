@@ -5,15 +5,14 @@
   #+BEGIN_SRC plantuml :file images/overview.png :exports results
     title Overview
 
-    "Program" --> ===evaluation===
+    "Program" -->[9 · Evaluation] "Computation result"
 
     partition Typechecking {
       "Program" -->[1 · Initial alignment] "Initial constraint set"
       "Initial constraint set" -->[2 · Ordering constraint closure] "Dependency graph constraint set"
       -->[3 · Depedency resolution] "Dependency graph"
-      --> ===full_constraint_closure===
-      "Initial constraint set" --> ===full_constraint_closure===
-      ===full_constraint_closure=== -->[4 · Full constraint closure] "Full constraint set"
+      -->[4 · Full constraint closure] "Full constraint set"
+      "Initial constraint set" --> "Full constraint set"
       if "5 · Immediately consistent?" then
         -->[6.1 · No · Typechecking failed] ===typechecking_failed===
       else
@@ -25,8 +24,7 @@
     ===typechecking_succeeded=== -->[7 · Type dispatch relation extraction] "Type dispatch relation"
 
     "Type dispatch relation" -->[8 · Expression dispatch relation extraction] "Expression dispatch relation"
-    --> ===evaluation===
-    -->[9 · Evaluation] "Computation result"
+    --> "Computation result"
   #+END_SRC
 
   #+RESULTS:
