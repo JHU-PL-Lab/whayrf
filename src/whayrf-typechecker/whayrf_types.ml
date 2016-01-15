@@ -90,6 +90,10 @@ module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_c
 
 module Function_pattern_matching_case_map = Map.Make(Function_pattern_matching_case_order);;
 
+(** A dependency graph is a map. The keys are function_type-pattern pairs and the values are sets of function_type-pattern pairs that are their dependencies.
+
+   { dependent: { dependencies, ... }, ... }
+*)
 type dependency_graph =
   | Dependency_graph of
       Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t
