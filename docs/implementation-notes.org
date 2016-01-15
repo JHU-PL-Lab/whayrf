@@ -9,9 +9,9 @@
       // Typography //
       ////////////////
 
-      fontname = "Open Sans";
-      node [fontname = "Open Sans", fontsize = 10];
-      edge [fontname = "Open Sans", fontsize = 10];
+      fontname = "Open Sans Bold";
+      node [fontname = "Open Sans Bold", fontsize = 14];
+      edge [fontname = "Open Sans Bold", fontsize = 14];
 
       //////////////////
       // Colorschemes //
@@ -91,9 +91,9 @@
        // Typography //
        ////////////////
 
-       fontname = "Open Sans";
-       node [fontname = "Open Sans", fontsize = 10];
-       edge [fontname = "Open Sans", fontsize = 10];
+       fontname = "Open Sans Bold";
+       node [fontname = "Open Sans Bold", fontsize = 14];
+       edge [fontname = "Open Sans Bold", fontsize = 14];
 
        //////////////////
        // Colorschemes //
