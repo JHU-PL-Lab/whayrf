@@ -6,6 +6,7 @@ open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
 open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_constraint_closure_non_function;;
+open Whayrf_dependency_resolution;;
 open Whayrf_function_pattern_search;;
 open Whayrf_initial_alignment;;
 open Whayrf_logger;;
@@ -79,9 +80,42 @@ let check
     raise @@ Invariant_failure "`check' called with non-function pattern."
 ;;
 
-(* TODO: Not implemented. *)
+(** READY *)
 let ready function_pattern_matching_case dependency_graph constraint_set =
-  true
+  dependencies function_pattern_matching_case dependency_graph
+  |> Function_pattern_matching_case_set.for_all
+    (
+      fun (
+        Function_pattern_matching_case (
+          function_type,
+          pattern
+        )
+      ) ->
+        (
+          Constraint_set.mem
+            (
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_positive (
+                  function_type,
+                  pattern
+                )
+              )
+            )
+            constraint_set
+        ) ||
+        (
+          Constraint_set.mem
+            (
+              Function_pattern_matching_constraint (
+                Function_pattern_matching_constraint_negative (
+                  function_type,
+                  pattern
+                )
+              )
+            )
+            constraint_set
+        )
+    )
 ;;
 
 (** Function constraint closure (F superscript)
