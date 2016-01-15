@@ -8,7 +8,7 @@ open Whayrf_types_utils;;
 open Whayrf_utils;;
 
 (* TODO: Not implemented. *)
-(** BEFORE (≺C) *)
+(** ≺C *)
 let is_dependency
     potential_dependency_function_pattern_matching_case
     dependent_function_pattern_matching_case
