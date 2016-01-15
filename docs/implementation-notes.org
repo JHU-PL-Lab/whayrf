@@ -2,29 +2,40 @@
 
 * Overview
 
-  #+BEGIN_SRC plantuml :file images/overview.png :exports results
-    title Overview
+  #+BEGIN_SRC dot :file images/overview.png :exports results
+    digraph overview {
+      fontname = "Open Sans";
+      color = "#333333";
+      fontcolor = "#333333";
+      node [fontname = "Open Sans", fontsize = 10, shape = box, style = "rounded", color = "#333333", fontcolor = "#333333"];
+      edge [fontname = "Open Sans", fontsize = 10, color = "#333333", fontcolor = "#333333"];
 
-    "Program" -->[9 · Evaluation] "Computation result"
+      "Program" -> "Initial constraint set" [label = " 1 · Initial alignment"];
 
-    partition Typechecking {
-      "Program" -->[1 · Initial alignment] "Initial constraint set"
-      "Initial constraint set" -->[2 · Ordering constraint closure] "Dependency graph constraint set"
-      -->[3 · Depedency resolution] "Dependency graph"
-      -->[4 · Full constraint closure] "Full constraint set"
-      "Initial constraint set" --> "Full constraint set"
-      if "5 · Immediately consistent?" then
-        -->[6.1 · No · Typechecking failed] ===typechecking_failed===
-      else
-        -->[6.2 · Yes · Typechecking succeeded] ===typechecking_succeeded===
-      endif
+      subgraph cluster_typechecking {
+        label = "Typechecking";
+        style = "rounded";
+
+        "Initial constraint set" -> "Dependency graph constraint set" [label = " 2 · Ordering constraint closure"];
+        "Dependency graph constraint set" -> "Dependency graph" [label = " 3 · Depedency resolution"];
+        full_constraint_closure [shape = point, width = 0.01, height = 0.01];
+        "Dependency graph" -> full_constraint_closure [dir = none];
+        "Initial constraint set" -> full_constraint_closure [dir = none];
+        full_constraint_closure -> "Full constraint set" [label = " 4 · Full constraint closure"];
+        "5 · Immediately consistent?" [shape = diamond];
+        "Full constraint set" -> "5 · Immediately consistent?";
+      }
+
+      typechecking_failed [style = invisible];
+      "5 · Immediately consistent?" -> typechecking_failed [label = " 6.1 · No · Typechecking failed", lhead = cluster_typechecking];
+      "5 · Immediately consistent?" -> "Type dispatch relation" [label = " 6.2 · Yes · Typechecking succeeded\n   7 · Type dispatch relation extraction"];
+
+      "Type dispatch relation" -> "Expression dispatch relation" [label = " 8 · Expression dispatch relation extraction"];
+      evaluation [shape = point, width = 0.01, height = 0.01];
+      "Expression dispatch relation" -> evaluation [dir = none];
+      "Program" -> evaluation [dir = none];
+      evaluation -> "Computation result" [label = " 9 · Evaluation"];
     }
-
-    ===typechecking_failed=== --> (*)
-    ===typechecking_succeeded=== -->[7 · Type dispatch relation extraction] "Type dispatch relation"
-
-    "Type dispatch relation" -->[8 · Expression dispatch relation extraction] "Expression dispatch relation"
-    --> "Computation result"
   #+END_SRC
 
   #+RESULTS:
