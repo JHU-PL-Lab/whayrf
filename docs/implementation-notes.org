@@ -27,7 +27,7 @@
       }
 
       typechecking_failed [style = invisible];
-      "5 · Immediately consistent?" -> typechecking_failed [label = " 6.1 · No · Typechecking failed", lhead = cluster_typechecking];
+      "5 · Immediately consistent?" -> typechecking_failed [label = " 6.1 · No · Typechecking failed"];
       "5 · Immediately consistent?" -> "Type dispatch relation" [label = " 6.2 · Yes · Typechecking succeeded\n   7 · Type dispatch relation extraction"];
 
       "Type dispatch relation" -> "Expression dispatch relation" [label = " 8 · Expression dispatch relation extraction"];
