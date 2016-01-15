@@ -17,13 +17,13 @@
       // Colorschemes //
       //////////////////
 
-      // Plain black-on-white.
+      // Solarized Light.
 
       bgcolor = transparent;
-      color = "#333333";
-      fontcolor = "#333333";
-      node [color = "#333333", fontcolor = "#333333"];
-      edge [color = "#333333", fontcolor = "#333333"];
+      color = "#657b83";
+      fontcolor = "#657b83";
+      node [color = "#657b83", fontcolor = "#657b83"];
+      edge [color = "#657b83", fontcolor = "#657b83"];
 
       ///////////////
       // Box style //
