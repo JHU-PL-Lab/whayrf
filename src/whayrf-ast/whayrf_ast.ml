@@ -92,6 +92,14 @@ and pattern =
   | Function_pattern of pattern * pattern
 ;;
 
+module Pattern_order =
+struct
+  type t = pattern
+  let compare = compare
+end;;
+
+module Pattern_set = Set.Make(Pattern_order);;
+
 (**
    Utils to manipulate the AST.
 *)

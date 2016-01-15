@@ -20,3 +20,9 @@ let dependencies function_pattern_matching_case (
       pretty_dependency_graph dependency_graph ^ "'."
     )
 ;;
+
+(** Find all type variables in `constraint_set'. *)
+(* TODO: Not implemented. *)
+let type_variables_in constraint_set =
+  Type_variable_set.empty
+;;

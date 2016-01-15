@@ -7,13 +7,13 @@ type type_variable =
   | Type_variable of ident
 ;;
 
-module Pattern_order =
+module Type_Variable_order =
 struct
-  type t = pattern
+  type t = type_variable
   let compare = compare
 end;;
 
-module Pattern_set = Set.Make(Pattern_order);;
+module Type_variable_set = Set.Make(Type_Variable_order);;
 
 type positive_pattern_set =
   | Positive_pattern_set of Pattern_set.t
