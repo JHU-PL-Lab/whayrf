@@ -89,3 +89,8 @@ end
 module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
 
 module Function_pattern_matching_case_map = Map.Make(Function_pattern_matching_case_order);;
+
+type dependency_graph =
+  | Dependency_graph of
+      Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t
+;;

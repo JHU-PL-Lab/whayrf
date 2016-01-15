@@ -81,7 +81,8 @@ Library "whayrf-typechecker"
     Whayrf_type_compatibility,
     Whayrf_typechecker,
     Whayrf_types,
-    Whayrf_types_pretty
+    Whayrf_types_pretty,
+    Whayrf_types_utils
   BuildDepends:
     batteries,
     whayrf-ast,
