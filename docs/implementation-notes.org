@@ -137,8 +137,6 @@
        subgraph cluster_legend {
          label = "Legend";
 
-         // rankdir = LR;
-
          "A" -> "B" [label = " uses"];
        }
 
