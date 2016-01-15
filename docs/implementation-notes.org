@@ -85,7 +85,7 @@
 ** Constraint closure dependency graph
 
    #+BEGIN_SRC dot :file images/constraint-closure-dependency-graph.png :exports results
-     digraph overview {
+     digraph constraint_closure_dependency_graph {
 
        ////////////////
        // Typography //
