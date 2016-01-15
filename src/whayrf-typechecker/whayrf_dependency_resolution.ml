@@ -1,15 +1,21 @@
 open Batteries;;
 
+open Whayrf_ast;;
 open Whayrf_types;;
 
-(* TODO: Not implemented. *)
-let dependency_resolution constraint_set =
-  None
-;;
+type dependency_graph = Dependency_graph of
+    Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t;;
 
 (* TODO: Not implemented. *)
 let pretty_dependency_graph dependency_graph =
   "TODO"
+;;
+
+(* TODO: Not implemented. *)
+let dependency_resolution constraint_set =
+  Dependency_graph (
+    Function_pattern_matching_case_map.empty
+  )
 ;;
 
 (* TODO: Not implemented. *)

@@ -87,3 +87,5 @@ struct
 end
 ;;
 module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
+
+module Function_pattern_matching_case_map = Map.Make(Function_pattern_matching_case_order);;
