@@ -113,9 +113,37 @@ let close_by_transitivity affection_set constraint_set =
   |> Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** APPLICATION *)
 let close_by_application affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Application_lower_bound (
+              type_variable_function,
+              type_variable_parameter
+            ),
+            type_variable_application_result
+          ) ->
+          Some (
+            Affection_set.of_list [
+              Type_variable_type_variable_affection (
+                type_variable_function,
+                type_variable_application_result
+              );
+              Type_variable_type_variable_affection (
+                type_variable_parameter,
+                type_variable_application_result
+              )
+            ]
+          )
+
+        | _ -> None
+    )
+  |> Enum.fold Affection_set.union affection_set
 ;;
 
 (* TODO: Not implemented. *)
