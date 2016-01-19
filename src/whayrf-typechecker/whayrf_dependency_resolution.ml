@@ -228,9 +228,62 @@ let close_by_conditional_input affection_set constraint_set =
   |> Enum.fold Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** CONDITIONAL OUTPUT *)
 let close_by_conditional_output affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Conditional_lower_bound (
+              subject,
+              pattern,
+              _,
+              _
+            ),
+            conditional_output_type_variable
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint (
+                      Restricted_type_lower_bound (
+                        Restricted_type (
+                          Function_type_type (
+                            function_type
+                          ),
+                          _
+                        )
+                      ),
+                      other_subject
+                    ) ->
+                    if subject = other_subject then
+                      Some (
+                        Function_pattern_matching_case_type_variable_affection (
+                          Function_pattern_matching_case (
+                            function_type,
+                            pattern
+                          ),
+                          conditional_output_type_variable
+                        )
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+          )
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Affection_set.of_enum
+  |> Affection_set.union affection_set
 ;;
 
 (* TODO: Not implemented. *)
