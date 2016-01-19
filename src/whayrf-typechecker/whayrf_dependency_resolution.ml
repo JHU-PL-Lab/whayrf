@@ -25,9 +25,32 @@ end
 ;;
 module Affection_set = Set.Make(Affection_order);;
 
-(* TODO: Not implemented. *)
+(** VARIABLE *)
 let close_by_variable affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Type_variable_lower_bound (
+              type_variable_before
+            ),
+            type_variable_after
+          )
+          ->
+          Some (
+            Type_variable_type_variable_affection (
+              type_variable_before,
+              type_variable_after
+            )
+          )
+
+        | _ -> None
+    )
+  |> Affection_set.of_enum
+  |> Affection_set.union affection_set
 ;;
 
 (* TODO: Not implemented. *)
