@@ -94,7 +94,6 @@ let rec evaluate env lastvar cls dispatch_table =
         match lastvar with
         | Some(x) -> (x, env)
         | None ->
-        (* TODO: different exception? *)
             raise (Failure "evaluation of empty expression!")
       end
   | (Clause(x, b)):: t ->
