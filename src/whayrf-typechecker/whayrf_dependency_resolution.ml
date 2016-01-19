@@ -166,9 +166,45 @@ let close_by_conditional_failure_body affection_set constraint_set =
   affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** RECORD *)
 let close_by_record affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Restricted_type_lower_bound (
+              Restricted_type (
+                Record_type (
+                  record_elements
+                ),
+                _
+              )
+            ),
+            type_variable_record
+          ) ->
+          Some (
+            record_elements
+            |> Ident_map.enum
+            |> Enum.map
+              (
+                fun (
+                  _,
+                  type_variable_element
+                ) ->
+                  Type_variable_type_variable_affection (
+                    type_variable_element,
+                    type_variable_record
+                  )
+              )
+            |> Affection_set.of_enum
+          )
+
+        | _ -> None
+    )
+  |> Enum.fold Affection_set.union affection_set
 ;;
 
 (** Run a list of affection closure rules to a fixpoint. *)
