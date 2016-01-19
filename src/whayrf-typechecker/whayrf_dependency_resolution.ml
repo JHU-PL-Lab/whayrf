@@ -2,6 +2,7 @@ open Batteries;;
 
 open Whayrf_ast;;
 open Whayrf_function_pattern_search;;
+open Whayrf_type_compatibility;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_types_utils;;
@@ -286,14 +287,198 @@ let close_by_conditional_output affection_set constraint_set =
   |> Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** CONDITIONAL SUCCESS BODY *)
 let close_by_conditional_success_body affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Conditional_lower_bound (
+              subject,
+              pattern,
+              Function_type (
+                _,
+                Constrained_type (
+                  _,
+                  body_constraint_set
+                )
+              ),
+              _
+            ),
+            _
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint (
+                      Restricted_type_lower_bound (
+                        (
+                          Restricted_type (
+                            Function_type_type (
+                              function_type
+                            ),
+                            _
+                          )
+                        ) as restricted_type
+                      ),
+                      other_subject
+                    ) ->
+                    if (
+                      subject = other_subject
+                    ) && (
+                        is_compatible_restricted_type
+                          restricted_type
+                          constraint_set
+                          (
+                            Type_restriction (
+                              Positive_pattern_set (
+                                Pattern_set.singleton pattern
+                              ),
+                              Negative_pattern_set (
+                                Pattern_set.empty
+                              )
+                            )
+                          )
+                      ) then
+                      Some (
+                        body_constraint_set
+                        |> Constraint_set.enum
+                        |> Enum.filter_map
+                          (
+                            fun tconstraint ->
+                              match tconstraint with
+                              | Lower_bound_constraint (
+                                  _,
+                                  type_variable_after
+                                ) ->
+                                Some (
+                                  Function_pattern_matching_case_type_variable_affection (
+                                    Function_pattern_matching_case (
+                                      function_type,
+                                      pattern
+                                    ),
+                                    type_variable_after
+                                  )
+                                )
+
+                              | _ -> None
+                          )
+                        |> Affection_set.of_enum
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+          )
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Enum.fold Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** CONDITIONAL FAILURE BODY *)
 let close_by_conditional_failure_body affection_set constraint_set =
-  affection_set
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Lower_bound_constraint (
+            Conditional_lower_bound (
+              subject,
+              pattern,
+              _,
+              Function_type (
+                _,
+                Constrained_type (
+                  _,
+                  body_constraint_set
+                )
+              )
+            ),
+            _
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint (
+                      Restricted_type_lower_bound (
+                        (
+                          Restricted_type (
+                            Function_type_type (
+                              function_type
+                            ),
+                            _
+                          )
+                        ) as restricted_type
+                      ),
+                      other_subject
+                    ) ->
+                    if (
+                      subject = other_subject
+                    ) && (
+                        is_compatible_restricted_type
+                          restricted_type
+                          constraint_set
+                          (
+                            Type_restriction (
+                              Positive_pattern_set (
+                                Pattern_set.empty
+                              ),
+                              Negative_pattern_set (
+                                Pattern_set.singleton pattern
+                              )
+                            )
+                          )
+                      ) then
+                      Some (
+                        body_constraint_set
+                        |> Constraint_set.enum
+                        |> Enum.filter_map
+                          (
+                            fun tconstraint ->
+                              match tconstraint with
+                              | Lower_bound_constraint (
+                                  _,
+                                  type_variable_after
+                                ) ->
+                                Some (
+                                  Function_pattern_matching_case_type_variable_affection (
+                                    Function_pattern_matching_case (
+                                      function_type,
+                                      pattern
+                                    ),
+                                    type_variable_after
+                                  )
+                                )
+
+                              | _ -> None
+                          )
+                        |> Affection_set.of_enum
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+          )
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Enum.fold Affection_set.union affection_set
 ;;
 
 (** RECORD *)
