@@ -639,8 +639,48 @@ let dependency_resolution constraint_set =
   )
 ;;
 
-(* TODO: Not implemented. *)
 (** Inspired by BLOCKING and CYCLE BREAKER from the main paper submission. *)
-let function_pattern_matching_cases_participating_in_cycles dependency_graph =
-  Function_pattern_matching_case_set.empty
+let function_pattern_matching_cases_participating_in_cycles (
+    Dependency_graph (
+      dependency_elements
+    )
+  ) =
+  let rec is_in_cycle
+      function_pattern_matching_case
+      trail =
+    if Function_pattern_matching_case_set.mem
+        function_pattern_matching_case
+        trail
+    then
+      true
+    else
+      let function_pattern_matching_case_dependencies =
+        Function_pattern_matching_case_map.find
+          function_pattern_matching_case
+          dependency_elements
+      in
+      function_pattern_matching_case_dependencies
+      |> Function_pattern_matching_case_set.enum
+      |> Enum.exists
+        (
+          fun function_pattern_matching_case_set_dependency ->
+            is_in_cycle
+              function_pattern_matching_case_set_dependency
+              (
+                Function_pattern_matching_case_set.add
+                  function_pattern_matching_case
+                  trail
+              )
+        )
+  in
+  dependency_elements
+  |> Function_pattern_matching_case_map.keys
+  |> Enum.filter
+    (
+      fun function_pattern_matching_case ->
+        is_in_cycle
+          function_pattern_matching_case
+          Function_pattern_matching_case_set.empty
+    )
+  |> Function_pattern_matching_case_set.of_enum
 ;;
