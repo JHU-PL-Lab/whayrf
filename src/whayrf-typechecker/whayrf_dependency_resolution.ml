@@ -53,14 +53,64 @@ let close_by_variable affection_set constraint_set =
   |> Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** REFLEXIVITY *)
 let close_by_reflexivity affection_set constraint_set =
-  affection_set
+  type_variables_in constraint_set
+  |> Type_variable_set.enum
+  |> Enum.map
+    (
+      fun type_variable ->
+        Type_variable_type_variable_affection (
+          type_variable,
+          type_variable
+        )
+    )
+  |> Affection_set.of_enum
+  |> Affection_set.union affection_set
 ;;
 
-(* TODO: Not implemented. *)
+(** TRANSITIVITY *)
 let close_by_transitivity affection_set constraint_set =
   affection_set
+  |> Affection_set.enum
+  |> Enum.filter_map
+    (
+      fun affection_1 ->
+        match affection_1 with
+        | Type_variable_type_variable_affection (
+            type_variable_before,
+            type_variable_intermediary
+          ) ->
+          Some (
+            affection_set
+            |> Affection_set.enum
+            |> Enum.filter_map
+              (
+                fun affection_2 ->
+                  match affection_2 with
+                  | Type_variable_type_variable_affection (
+                      other_type_variable_intermediary,
+                      type_variable_after
+                    ) ->
+                    if type_variable_intermediary = other_type_variable_intermediary then
+                      Some (
+                        Type_variable_type_variable_affection (
+                          type_variable_before,
+                          type_variable_after
+                        )
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+          )
+
+        | _ -> None
+    )
+  |> Enum.concat
+  |> Affection_set.of_enum
+  |> Affection_set.union affection_set
 ;;
 
 (* TODO: Not implemented. *)
