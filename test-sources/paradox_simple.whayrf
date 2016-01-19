@@ -1,5 +1,4 @@
-# EXPECT-TYPECHECK
-# EXPECT-EVALUATE
+# EXPECT-TYPEFAIL
 
 # This captures the essence of the following snippet which is a variation on
 # the one from the overview section
@@ -11,8 +10,7 @@
 #   _ -> {}
 # in paradox 4
 #
-# The paradox isn't detected and the NO branch is always taken, which is always
-# a sensible choice.
+# The paradox is detected and typechecking fails.
 
 yCombinator = fun fYCombinator -> {
 
