@@ -1,0 +1,41 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This captures the essence of the following snippet from the overview section
+# of the paper:
+#
+# let inform listener =
+#     case listener of
+#         ({ a: int, b: int } ~> int) as f -> f { a = 4, b = 8 }
+#         ({ a: int} ~> int) as f -> f { a = 4 }
+
+inform = fun listener -> {
+  informReturn = listener
+    ~ fun { a: { int: {} }, b: { int: {} } } ~> { { int: {} } } ?
+    listenerMatch -> {
+      listenerMatchEmptyRecord = {};
+      listenerMatchInteger = { int = listenerMatchEmptyRecord };
+      listenerMatchArgument = { a = listenerMatchInteger, b = listenerMatchInteger };
+      listenerMatchReturn = listenerMatch listenerMatchArgument;
+    } : listenerAntimatch -> {
+        listenerAntimatchReturn = listenerAntimatch
+          ~ fun { a: { int: {} } } ~> { { int: {} } } ?
+          listenerAntimatchMatch -> {
+            listenerAntimatchMatchEmptyRecord = {};
+            listenerAntimatchMatchInteger = { int = listenerAntimatchMatchEmptyRecord };
+            listenerAntimatchMatchArgument = { a = listenerAntimatchMatchInteger };
+            listenerAntimatchMatchReturn = listenerAntimatchMatch listenerAntimatchMatchArgument;
+          } : listenerAntimatchAntimatch -> {
+            listenerAntimatchAntimatchBogusFunction = {};
+            listenerAntimatchAntimatchParameterForBogusFunction = {};
+            listenerAntimatchAntimatchReturn = listenerAntimatchAntimatchBogusFunction listenerAntimatchAntimatchParameterForBogusFunction;
+          };
+    };
+};
+
+informArgument = fun informArgumentArgument -> {
+  informArgumentEmptyRecord = {};
+  informArgumentReturn = { int = informArgumentEmptyRecord };
+};
+
+return = inform informArgument;
