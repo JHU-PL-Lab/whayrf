@@ -2,20 +2,24 @@ require "fileutils"
 require "benchmark"
 
 test_cases = [
-  # { width:  1, depth:  1 },
-  # { width:  1, depth:  2 },
-  # { width:  2, depth:  2 },
-  # { width:  2, depth:  1 },
-  # { width:  5, depth:  1 },
-  # { width:   9, depth:  1 },
-  # { width:  10, depth:  1 },
-  # { width:  11, depth:  1 },
-  # { width:  12, depth:  1 },
-  # { width:  15, depth:  1 },
-  # { width: 20, depth:  1 },
-  # { width:  1, depth:  5 },
-  # { width:  1, depth:  6 },
-  # { width:  1, depth:  7 },
+
+  # Smoke test.
+
+  { width: 1, depth: 1 },
+
+  # Width deep.
+
+  { width:  8, depth: 1 },
+  { width:  9, depth: 1 },
+  { width: 10, depth: 1 },
+  { width: 11, depth: 1 },
+  { width: 12, depth: 1 },
+  { width: 13, depth: 1 },
+  { width: 14, depth: 1 },
+  { width: 15, depth: 1 },
+
+  # Depth deep.
+
   { width:  1, depth:  8 },
   { width:  1, depth:  9 },
   { width:  1, depth: 10 },
@@ -24,11 +28,14 @@ test_cases = [
   { width:  1, depth: 13 },
   { width:  1, depth: 14 },
   { width:  1, depth: 15 },
-  # { width:  1, depth: 20 },
-  # { width:  5, depth:  5 },
+
+  # Square.
+
+  { width:  2, depth:  2 },
+  { width:  5, depth:  5 },
 ]
 
-`cd .. && docker-compose run --rm whayrf 'make' > /dev/null 2>&1`
+`cd .. && make > /dev/null 2>&1`
 
 label_length = 20
 Benchmark.bm(label_length) do |x|
@@ -37,7 +44,7 @@ Benchmark.bm(label_length) do |x|
     file_name = "../test-sources/#{test_name}.whayrf"
     `ruby generate_load_test.rb #{test_case[:width]} #{test_case[:depth]} > #{file_name}`
     x.report("Width: #{test_case[:width]}, Depth: #{test_case[:depth]}") do
-      `cd .. && docker-compose run --rm whayrf 'make test' > /dev/null 2>&1`
+      `cd .. && make test > /dev/null 2>&1`
     end
     FileUtils.rm file_name
   end
