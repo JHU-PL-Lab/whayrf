@@ -1,0 +1,51 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This captures the essence of the following snippet from the overview section
+# of the paper:
+#
+# let rec selfMatch n:int =
+#   case selfMatch of
+#   int ~> {} -> {}
+# in selfMatch 4
+
+yCombinator = fun fYCombinator -> {
+
+  yCombinatorFunction = fun xYCombinatorFunction -> {
+    argumentYCombinatorFunction = fun vArgumentYCombinatorFunction -> {
+      functionArgumentYCombinatorFunction = xYCombinatorFunction xYCombinatorFunction;
+      returnArgumentYCombinatorFunction = functionArgumentYCombinatorFunction vArgumentYCombinatorFunction;
+    };
+    returnYCombinatorFunction = fYCombinator argumentYCombinatorFunction;
+  };
+
+  yCombinatorParameter = fun xYCombinatorParameter -> {
+    argumentYCombinatorParameter = fun vArgumentYCombinatorParameter -> {
+      functionArgumentYCombinatorParameter = xYCombinatorParameter xYCombinatorParameter;
+      returnArgumentYCombinatorParameter = functionArgumentYCombinatorParameter vArgumentYCombinatorParameter;
+    };
+    returnYCombinatorParameter = fYCombinator argumentYCombinatorParameter;
+  };
+
+  returnYCombinator = yCombinatorFunction yCombinatorParameter;
+};
+
+partialSelfMatch = fun recursePartialSelfMatch -> {
+  returnRecursePartialSelfMatch = fun n -> {
+    returnPartialSelfMatch = recursePartialSelfMatch ~ fun { int: {} } ~> { {} } ?
+      recursePartialSelfMatch -> {
+        returnPartialSelfMatchMatch = {}
+      } : recursePartialSelfAntimatch -> {
+        bogusFunctionPartialSelfMatchAntimatch = {};
+        parameterForBogusFunctionPartialSelfMatchAntimatch = {};
+        returnPartialSelfMatchAntimatch = bogusFunctionPartialSelfMatchAntimatch parameterForBogusFunctionPartialSelfMatchAntimatch
+      }
+  };
+};
+
+selfMatch = yCombinator partialSelfMatch;
+
+intForSelfMatch = {};
+parameterForSelfMatch = { int = intForSelfMatch };
+
+return = selfMatch parameterForSelfMatch;

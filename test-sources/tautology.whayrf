@@ -4,10 +4,13 @@
 # This captures the essence of the following snippet from the overview section
 # of the paper:
 #
-# let rec selfMatch n:int =
-#   case selfMatch of
-#   int ~> {} -> {}
-# in selfMatch 4
+# let rec tautology n:int =
+#   case tautology of
+#   int ~> {} -> { notInt = {} }
+#   int ~> int -> 0
+# in
+# let return = tautology 4 in
+# return.notInt;
 
 yCombinator = fun fYCombinator -> {
 
@@ -30,22 +33,31 @@ yCombinator = fun fYCombinator -> {
   returnYCombinator = yCombinatorFunction yCombinatorParameter;
 };
 
-partialSelfMatch = fun recursePartialSelfMatch -> {
-  returnRecursePartialSelfMatch = fun n -> {
-    returnPartialSelfMatch = recursePartialSelfMatch ~ fun { int: {} } ~> { {} } ?
-      recursePartialSelfMatch -> {
-        returnPartialSelfMatchMatch = {}
-      } : recursePartialSelfAntimatch -> {
-        bogusFunctionPartialSelfMatchAntimatch = {};
-        parameterForBogusFunctionPartialSelfMatchAntimatch = {};
-        returnPartialSelfMatchAntimatch = bogusFunctionPartialSelfMatchAntimatch parameterForBogusFunctionPartialSelfMatchAntimatch
+partialTautology = fun recursePartialTautology -> {
+  returnRecursePartialTautology = fun n -> {
+    returnPartialTautology = recursePartialTautology ~ fun { int: {} } ~> { { notInt: {} } } ?
+      partialTautologyMatch -> {
+        intForPartialTautologyMatch = {};
+        returnPartialTautologyMatch = { notInt = intForPartialTautologyMatch }
+      } : partialTautologyAntimatch -> {
+        returnPartialTautologyAntimatch = partialTautologyAntimatch ~ fun { int: {} } ~> { { int: {} } } ?
+          partialTautologyAntimatchMatch -> {
+            notIntForPartialTautologyMatch = {};
+            returnPartialTautologyAntimatchMatch = { int = notIntForPartialTautologyMatch }
+          } : partialTautologyAntimatchAntimatch -> {
+            bogusFunctionPartialTautologyAntimatchAntimatch = {};
+            parameterForBogusFunctionPartialTautologyAntimatchAntimatch = {};
+            returnPartialTautologyAntimatchAntimatch = bogusFunctionPartialTautologyAntimatchAntimatch parameterForBogusFunctionPartialTautologyAntimatchAntimatch
+          }
       }
   };
 };
 
-selfMatch = yCombinator partialSelfMatch;
+tautology = yCombinator partialTautology;
 
-intForSelfMatch = {};
-parameterForSelfMatch = { int = intForSelfMatch };
+intForTautology = {};
+parameterForTautology = { int = intForTautology };
 
-return = selfMatch parameterForSelfMatch;
+return = tautology parameterForTautology;
+
+scrubbles = return.notInt;
