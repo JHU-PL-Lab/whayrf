@@ -563,11 +563,6 @@ let is_dependency
     dependent_function_pattern_matching_case
     affections
     constraint_set =
-  (
-    (* A `function_pattern_matching_case' cannot be a dependency of itself. *)
-    dependent_function_pattern_matching_case <>
-    potential_dependency_function_pattern_matching_case
-  ) &&
   let type_variables_in_constraint_set =
     type_variables_in constraint_set
   in
