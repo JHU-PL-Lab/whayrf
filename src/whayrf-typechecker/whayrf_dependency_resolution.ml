@@ -641,32 +641,56 @@ let function_pattern_matching_cases_participating_in_cycles (
     )
   ) =
   let rec is_in_cycle
-      function_pattern_matching_case
+      subject_function_pattern_matching_case
+      current_function_pattern_matching_case
       trail =
-    if Function_pattern_matching_case_set.mem
-        function_pattern_matching_case
-        trail
+    (* Visiting the same subject again, i.e. found a cycle. *)
+    if (
+      not (
+        Function_pattern_matching_case_set.equal
+          trail
+          Function_pattern_matching_case_set.empty
+      )
+    ) && (
+        subject_function_pattern_matching_case =
+        current_function_pattern_matching_case
+      )
     then
       true
     else
-      let function_pattern_matching_case_dependencies =
-        Function_pattern_matching_case_map.find
-          function_pattern_matching_case
-          dependency_elements
-      in
-      function_pattern_matching_case_dependencies
-      |> Function_pattern_matching_case_set.enum
-      |> Enum.exists
-        (
-          fun function_pattern_matching_case_set_dependency ->
-            is_in_cycle
-              function_pattern_matching_case_set_dependency
-              (
-                Function_pattern_matching_case_set.add
-                  function_pattern_matching_case
-                  trail
-              )
-        )
+      (* A cycle was found, but the current not doesn't participate in it.
+
+         Think of the case of A in the following graph:
+
+         A -> B -> C
+              ^    |
+              ------
+      *)
+      if Function_pattern_matching_case_set.mem
+        current_function_pattern_matching_case
+        trail
+      then
+        false
+      else
+        let function_pattern_matching_case_dependencies =
+          Function_pattern_matching_case_map.find
+            current_function_pattern_matching_case
+            dependency_elements
+        in
+        function_pattern_matching_case_dependencies
+        |> Function_pattern_matching_case_set.enum
+        |> Enum.exists
+          (
+            fun current_function_pattern_matching_case_set_dependency ->
+              is_in_cycle
+                subject_function_pattern_matching_case
+                current_function_pattern_matching_case_set_dependency
+                (
+                  Function_pattern_matching_case_set.add
+                    current_function_pattern_matching_case
+                    trail
+                )
+          )
   in
   dependency_elements
   |> Function_pattern_matching_case_map.keys
@@ -674,6 +698,7 @@ let function_pattern_matching_cases_participating_in_cycles (
     (
       fun function_pattern_matching_case ->
         is_in_cycle
+          function_pattern_matching_case
           function_pattern_matching_case
           Function_pattern_matching_case_set.empty
     )
