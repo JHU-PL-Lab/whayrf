@@ -1,0 +1,57 @@
+# EXPECT-TYPEFAIL
+
+# This captures the essence of the following snippet which is a variation on
+# the one from the overview section
+# of the paper:
+#
+# let rec cycle n:int =
+#   identity = fun parameter -> parameter;
+#   scrubbles = case identity of
+#                   {} ~> {} -> fun parameter -> parameter;
+#   case scrubbles(cycle) of
+#   int ~> {} -> 0
+#   _ -> 0
+# in cycle 4
+#
+# The cycle is detected and typechecking fails.
+
+yCombinator = fun fYCombinator -> {
+
+  yCombinatorFunction = fun xYCombinatorFunction -> {
+    argumentYCombinatorFunction = fun vArgumentYCombinatorFunction -> {
+      functionArgumentYCombinatorFunction = xYCombinatorFunction xYCombinatorFunction;
+      returnArgumentYCombinatorFunction = functionArgumentYCombinatorFunction vArgumentYCombinatorFunction;
+    };
+    returnYCombinatorFunction = fYCombinator argumentYCombinatorFunction;
+  };
+
+  yCombinatorParameter = fun xYCombinatorParameter -> {
+    argumentYCombinatorParameter = fun vArgumentYCombinatorParameter -> {
+      functionArgumentYCombinatorParameter = xYCombinatorParameter xYCombinatorParameter;
+      returnArgumentYCombinatorParameter = functionArgumentYCombinatorParameter vArgumentYCombinatorParameter;
+    };
+    returnYCombinatorParameter = fYCombinator argumentYCombinatorParameter;
+  };
+
+  returnYCombinator = yCombinatorFunction yCombinatorParameter;
+};
+
+partialCycle = fun recursePartialCycle -> {
+  returnRecursePartialCycle = fun n -> {
+    returnPartialCycle = recursePartialCycle ~ fun { int: {} } ~> { { notInt: {} } } ?
+      partialCycleMatch -> {
+        intForPartialCycleMatch = {};
+        returnPartialCycleMatch = { int = intForPartialCycleMatch }
+      } : partialCycleAntimatch -> {
+        notIntForPartialCycleMatch = {};
+        returnPartialCycleAntimatchMatch = { int = notIntForPartialCycleMatch }
+      }
+  };
+};
+
+cycle = yCombinator partialCycle;
+
+intForCycle = {};
+parameterForCycle = { int = intForCycle };
+
+return = cycle parameterForCycle;
