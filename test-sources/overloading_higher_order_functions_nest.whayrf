@@ -1,0 +1,106 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This captures the essence of the following snippet from the overview section
+# of the paper:
+#
+# let nest num:int arg =
+#     if num < 0 then {}
+#     else if num == 0 then
+#         case arg of
+#             {} -> arg
+#             {} ~> {} as fn -> fn {}
+#     else { a = nest (num - 1) arg }
+#
+# Because there are no integers in Whayrf, this test uses and adapted form of
+# Church encoding:
+#
+# | Number | Representation                                |
+# |--------|-----------------------------------------------|
+# |     -1 | { base = {} }                                 |
+# |      0 | { successor = { base = {} } }                 |
+# |      1 | { successor = { successor = { base = {} } } } |
+# |    ... | ...                                           |
+#
+# Note that, `number = { successor = (number - 1) }'.
+
+yCombinator = fun fYCombinator -> {
+
+  yCombinatorFunction = fun xYCombinatorFunction -> {
+    argumentYCombinatorFunction = fun vArgumentYCombinatorFunction -> {
+      functionArgumentYCombinatorFunction = xYCombinatorFunction xYCombinatorFunction;
+      returnArgumentYCombinatorFunction = functionArgumentYCombinatorFunction vArgumentYCombinatorFunction;
+    };
+    returnYCombinatorFunction = fYCombinator argumentYCombinatorFunction;
+  };
+
+  yCombinatorParameter = fun xYCombinatorParameter -> {
+    argumentYCombinatorParameter = fun vArgumentYCombinatorParameter -> {
+      functionArgumentYCombinatorParameter = xYCombinatorParameter xYCombinatorParameter;
+      returnArgumentYCombinatorParameter = functionArgumentYCombinatorParameter vArgumentYCombinatorParameter;
+    };
+    returnYCombinatorParameter = fYCombinator argumentYCombinatorParameter;
+  };
+
+  returnYCombinator = yCombinatorFunction yCombinatorParameter;
+};
+
+partialNest = fun recurseNest -> {
+  partialNestReturn = fun number -> {
+    nestUncurriedReturn = fun argument -> {
+      nestReturn = number
+      ~ { base: {} } ?
+      negativeNumber -> {
+        negativeNumberReturn = {};
+      } : nonNegativeNumber -> {
+        nonNegativeNumberReturn = nonNegativeNumber
+        ~ { successor: { base: {} } } ?
+        zero -> {
+          zeroReturn = argument
+          ~ {} ?
+          argumentRecord -> {
+            argumentRecordReturn = argumentRecord;
+          } : argumentPotentialFunction -> {
+            argumentPotentialFunctionReturn = argumentPotentialFunction
+            ~ fun {} ~> {{}} ?
+            argumentFunction -> {
+              argumentFunctionArgument = {};
+              argumentFunctionReturn = argumentFunction argumentFunctionArgument;
+            } : invalidArgument -> {
+              invalidArgumentBogusFunction = {};
+              invalidArgumentParameterForBogusFunction = {};
+              invalidArgumentReturn = invalidArgumentBogusFunction invalidArgumentParameterForBogusFunction;
+            };
+          };
+        } : potentialPositiveNumber -> {
+          potentialPositiveNumberReturn = potentialPositiveNumber
+          ~ { successor: {} } ?
+          positiveNumber -> {
+            positiveNumberPredecessor = positiveNumber.successor;
+            uncurriedRecursiveCall = recurseNest positiveNumberPredecessor;
+            recursiveCall = uncurriedRecursiveCall argument;
+            returnPositiveNumber = { a = recursiveCall };
+          } : invalidNumber -> {
+            invalidNumberBogusFunction = {};
+            invalidNumberParameterForBogusFunction = {};
+            invalidNumberReturn = invalidNumberBogusFunction invalidNumberParameterForBogusFunction;
+          };
+        };
+      };
+    };
+  };
+};
+
+nest = yCombinator partialNest;
+
+emptyRecord = {};
+
+nestArgumentBase = { base = emptyRecord };
+nestArgumentZero = { successor = nestArgumentBase };
+nestArgumentOne = { successor = nestArgumentZero };
+
+nestArgumentArgument = {};
+
+returnCurried = nest nestArgumentOne;
+
+return = returnCurried nestArgumentArgument;
