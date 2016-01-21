@@ -18,20 +18,13 @@ test_cases = [
   { width: 14, depth: 1 },
   { width: 15, depth: 1 },
 
-  # Depth deep.
-
-  { width:  1, depth:  8 },
-  { width:  1, depth:  9 },
-  { width:  1, depth: 10 },
-  { width:  1, depth: 11 },
-  { width:  1, depth: 12 },
-  { width:  1, depth: 13 },
-  { width:  1, depth: 14 },
-  { width:  1, depth: 15 },
-
   # Square.
 
   { width:  2, depth:  2 },
+
+  # Takes a long while/never finishes.
+
+  { width:  1, depth:  8 },
   { width:  5, depth:  5 },
 ]
 
