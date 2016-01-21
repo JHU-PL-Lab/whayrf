@@ -1,0 +1,48 @@
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
+
+# This captures the essence of the following snippet from the overview section
+# of the paper:
+#
+# let collide message = case message of
+#     { a = x : { damage: {} ~> bool }, b = {} } -> x.damage()
+#     { a = {}, b = y : { damage: {} ~> bool } } -> y.damage()
+
+collide = fun message -> {
+  collideReturn = message
+  ~ { a: { damage: fun {} ~> { { bool: {} } } }, b: {} } ?
+  aRecord -> {
+    aDamageRecord = aRecord.a;
+    aDamageFunction = aDamageRecord.damage;
+    aEmptyRecord = {};
+    aDamageFunctionParameter = { bool = aEmptyRecord };
+    aRecordReturn = aDamageFunction aDamageFunctionParameter;
+  } : bPotentialRecord -> {
+    bPotentialRecordReturn = bPotentialRecord
+    ~ { a: {}, b: { damage: fun {} ~> { { bool: {} } } } } ?
+    bRecord -> {
+      bDamageRecord = bRecord.b;
+      bDamageFunction = bDamageRecord.damage;
+      bEmptyRecord = {};
+      bDamageFunctionParameter = { bool = bEmptyRecord };
+      bRecordReturn = bDamageFunction bDamageFunctionParameter;
+    } : invalidRecord -> {
+      invalidRecordBogusFunction = {};
+      invalidRecordParameterForBogusFunction = {};
+      invalidRecordReturn = invalidRecordBogusFunction invalidRecordParameterForBogusFunction;
+    };
+  };
+};
+
+damageFunction = fun damageFunctionArgument -> {
+  damageFunctionEmptyRecord = {};
+  damageFunctionReturn = { bool = damageFunctionEmptyRecord };
+};
+
+damageRecord = { damage = damageFunction };
+
+emptyRecord = {};
+
+collideArgument = { a = damageRecord, b = emptyRecord };
+
+return = collide collideArgument;
