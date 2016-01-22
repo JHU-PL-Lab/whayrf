@@ -14,7 +14,14 @@
 #   _ -> 0
 # in cycle 4
 #
-# The cycle is detected and typechecking fails.
+# The cycle is stable only on the `anti-match' condition, but we default to
+# `match' when cycle breaking, so typechecking fails.
+#
+# This differs from `tautology_simple.wharf' because `tautology_simple.wharf'
+# stable on the `match' condition.
+#
+# The purpose of this test is to guarantee that a function_type-pattern pair can
+# point to itself as a dependency.
 
 yCombinator = fun fYCombinator -> {
 
@@ -39,7 +46,22 @@ yCombinator = fun fYCombinator -> {
 
 partialCycle = fun recursePartialCycle -> {
   returnRecursePartialCycle = fun n -> {
-    returnPartialCycle = recursePartialCycle ~ fun { int: {} } ~> { { notInt: {} } } ?
+    identity = fun identityParameter -> {
+      returnIdentity = identityParameter;
+    };
+    scrubbles = identity
+      ~ fun {} ~> {{}} ?
+      scubblesMatch -> {
+        otherIdentity = fun otherIdentityParameter -> {
+          returnOtherIdentity = otherIdentityParameter;
+        };
+      } : scrubblesAntimatch -> {
+        bogusFunctionPartialParadoxAntimatchAntimatch = {};
+        parameterForBogusFunctionPartialParadoxAntimatchAntimatch = {};
+        returnPartialParadoxAntimatchAntimatch = bogusFunctionPartialParadoxAntimatchAntimatch parameterForBogusFunctionPartialParadoxAntimatchAntimatch
+      };
+    subject = scrubbles recursePartialCycle;
+    returnPartialCycle = subject ~ fun { int: {} } ~> { { notInt: {} } } ?
       partialCycleMatch -> {
         intForPartialCycleMatch = {};
         returnPartialCycleMatch = { int = intForPartialCycleMatch }
