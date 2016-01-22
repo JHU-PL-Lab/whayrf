@@ -15,6 +15,10 @@
 #
 # This differs from `tautology_simple.wharf' because `tautology_simple.wharf'
 # stable on the `match' condition.
+#
+# This test guarantees that a function_type-pattern pair can be listed as a
+# dependency of itself. I.e., that a node on the dependency graph can _point to
+# itself_.
 
 yCombinator = fun fYCombinator -> {
 
