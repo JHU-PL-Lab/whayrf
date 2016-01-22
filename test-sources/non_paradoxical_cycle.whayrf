@@ -10,7 +10,11 @@
 #   _ -> 0
 # in cycle 4
 #
-# The cycle is detected and typechecking fails.
+# The cycle is stable only on the `anti-match' condition, but we default to
+# `match' when cycle breaking, so typechecking fails.
+#
+# This differs from `tautology_simple.wharf' because `tautology_simple.wharf'
+# stable on the `match' condition.
 
 yCombinator = fun fYCombinator -> {
 
