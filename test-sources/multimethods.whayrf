@@ -5,8 +5,8 @@
 # of the paper:
 #
 # let collide message = case message of
-#     { a = x : { damage: {} ~> bool }, b = {} } -> x.damage()
-#     { a = {}, b = y : { damage: {} ~> bool } } -> y.damage()
+#     { a: { damage: {} ~> bool } as ship, b: {} } -> ship.damage()
+#     { a: {}, b: { damage: {} ~> bool } as ship } -> ship.damage()
 
 collide = fun message -> {
   collideReturn = message
