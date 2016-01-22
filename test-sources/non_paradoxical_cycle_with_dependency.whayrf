@@ -5,10 +5,11 @@
 # of the paper:
 #
 # let rec cycle n:int =
-#   identity = fun parameter -> parameter;
-#   scrubbles = case identity of
-#                   {} ~> {} -> fun parameter -> parameter;
-#   case scrubbles(cycle) of
+#   let identity = fun parameter -> parameter in
+#   let scrubbles = case identity of
+#                   {} ~> {} -> fun parameter -> parameter
+#   in
+#   case scrubbles cycle of
 #   int ~> {} -> 0
 #   _ -> 0
 # in cycle 4

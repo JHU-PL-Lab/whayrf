@@ -11,6 +11,12 @@
 # let return = selfMatch 4 in
 # let f = fun _ -> return in
 # f ~ {} ~> {}
+#
+# This test guarantees that cycle detection works in the following case:
+#
+#     A -> B -> C
+#          ^    |
+#          ------
 
 yCombinator = fun fYCombinator -> {
 
