@@ -64,32 +64,33 @@ let is_inconsistent constraint_set =
                           false
                         (* UNKNOWN APPLICATION FAILURE *)
                         | Unknown_type ->
-                          not (
-                            positive_patterns
-                            |> Pattern_set.enum
-                            |> Enum.exists
-                              (
-                                fun (pattern) ->
-                                  match pattern with
-                                  | Function_pattern (parameter_pattern, _) ->
-                                    is_compatible_restricted_type
-                                      parameter_restricted_type
-                                      constraint_set
-                                      (
-                                        Type_restriction (
-                                          Positive_pattern_set (
-                                            Pattern_set.add
-                                              parameter_pattern
-                                              Pattern_set.empty
-                                          ),
-                                          Negative_pattern_set (
-                                            Pattern_set.empty
+                          is_compatible_restricted_type
+                            parameter_restricted_type
+                            constraint_set
+                            (
+                              Type_restriction (
+                                Positive_pattern_set (
+                                  Pattern_set.empty
+                                ),
+                                Negative_pattern_set (
+                                  positive_patterns
+                                  |> Pattern_set.filter_map
+                                    (
+                                      fun pattern ->
+                                        match pattern with
+                                        | Function_pattern (
+                                            parameter_pattern,
+                                            _
+                                          ) ->
+                                          Some (
+                                            parameter_pattern
                                           )
-                                        )
-                                      )
-                                  | _ -> false
+
+                                        | _ -> None
+                                    )
+                                )
                               )
-                          )
+                            )
                         (* Any other type that shows up in the place of a
                            function in an application is an inconsistency. *)
                         | _ -> true
@@ -117,7 +118,7 @@ let is_inconsistent constraint_set =
                     ) ->
                       (record_type_variable = other_record_type_variable) &&
                       (not
-                        (* HAS FIELD *)
+                         (* HAS FIELD *)
                          (
                            match ttype with
                            | Record_type (record_elements) ->
