@@ -136,3 +136,18 @@
    [[file:images/constraint-closure-dependency-graph.png]]
 
    Leaves are based directly on rules.
+
+* Debugging tips
+
+  1. Squelch constraints can only appear in subordinate closures.
+
+  2. Unknown types can only appear in subordinate closures or as the result of
+     Ordering Constraint Closure (by means of Ordering Function Constraint
+     Closure).
+
+  3. Dependency graphs are pretty printed as [[http://graphviz.org/][Graphviz]] input. Trace dependency
+     graphs by enabling the =trace= log:
+
+     #+BEGIN_SRC sh
+       $ ./whayrf_toploop.byte --log Whayrf_typechecker=trace
+     #+END_SRC
