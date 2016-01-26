@@ -147,6 +147,83 @@ let close_by_application affection_set constraint_set =
   |> Enum.fold Affection_set.union affection_set
 ;;
 
+(** PATTERN-MATCHING *)
+let close_by_pattern_matching affection_set constraint_set =
+  constraint_set
+  |> Constraint_set.enum
+  |> Enum.filter_map
+    (
+      fun tconstraint ->
+        match tconstraint with
+        | Type_variable_constraint (
+            subject,
+            pattern
+          ) ->
+          Some (
+            constraint_set
+            |> Constraint_set.enum
+            |> Enum.filter_map
+              (
+                fun tconstraint ->
+                  match tconstraint with
+                  | Lower_bound_constraint (
+                      Restricted_type_lower_bound (
+                        Restricted_type (
+                          Function_type_type (
+                            (
+                              Function_type (
+                                _,
+                                Constrained_type (
+                                  _,
+                                  body_constraint_set
+                                )
+                              )
+                            )
+                            as function_type
+                          ),
+                          _
+                        )
+                      ),
+                      other_subject
+                    ) ->
+                    if subject = other_subject then
+                      Some (
+                        body_constraint_set
+                        |> Constraint_set.enum
+                        |> Enum.filter_map
+                          (
+                            fun tconstraint ->
+                              match tconstraint with
+                              | Lower_bound_constraint (
+                                  _,
+                                  type_variable_before
+                                ) ->
+                                Some (
+                                  Type_variable_function_pattern_matching_case_affection (
+                                    type_variable_before,
+                                    Function_pattern_matching_case (
+                                      function_type,
+                                      pattern
+                                    )
+                                  )
+                                )
+
+                              | _ -> None
+                          )
+                        |> Affection_set.of_enum
+                      )
+                    else
+                      None
+
+                  | _ -> None
+              )
+            |> Enum.fold Affection_set.union Affection_set.empty
+          )
+        | _ -> None
+    )
+  |> Enum.fold Affection_set.union affection_set
+;;
+
 (** CONDITIONAL INPUT *)
 let close_by_conditional_input affection_set constraint_set =
   constraint_set
@@ -547,6 +624,7 @@ let affection_closure constraint_set =
       close_by_reflexivity;
       close_by_transitivity;
       close_by_application;
+      close_by_pattern_matching;
       close_by_conditional_input;
       close_by_conditional_output;
       close_by_conditional_success_body;
