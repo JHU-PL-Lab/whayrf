@@ -151,3 +151,135 @@
      #+BEGIN_SRC sh
        $ ./whayrf_toploop.byte --log Whayrf_typechecker=trace
      #+END_SRC
+
+  4. Debug a constraint set (as opposed to a Whayrf program):
+
+     In =whayrf_toploop.ml=, change the main function ~let () =...~ to something
+     like (and give your constraint set as =initial_constraint_set=):
+
+     #+BEGIN_SRC ocaml
+       open Printf;;
+
+       open Whayrf_ast;;
+       open Whayrf_constraint_closure_full;;
+       open Whayrf_constraint_closure_ordering;;
+       open Whayrf_dependency_resolution;;
+       open Whayrf_consistency;;
+       open Whayrf_types;;
+       open Whayrf_types_pretty;;
+
+       let initial_constraint_set =
+         Constraint_set.of_list [
+           (
+             Lower_bound_constraint (
+               Restricted_type_lower_bound (
+                 Restricted_type (
+                   Unknown_type,
+                   Type_restriction (
+                     Positive_pattern_set (
+                       Pattern_set.singleton (
+                         Function_pattern (
+                           Record_pattern (
+                             Ident_map.singleton
+                               (
+                                 Ident ("unknown_key")
+                               )
+                               (
+                                 Record_pattern (Ident_map.empty)
+                               )
+                           ),
+                           Record_pattern (Ident_map.empty)
+                         )
+                       )
+                     ),
+                     Negative_pattern_set (
+                       Pattern_set.empty
+                     )
+                   )
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_function")
+               )
+             )
+           );
+           (
+             Lower_bound_constraint (
+               Restricted_type_lower_bound (
+                 Restricted_type (
+                   Unknown_type,
+                   Type_restriction (
+                     Positive_pattern_set (
+                       Pattern_set.singleton (
+                         Record_pattern (Ident_map.empty)
+                       )
+                     ),
+                     Negative_pattern_set (
+                       Pattern_set.empty
+                     )
+                   )
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_parameter")
+               )
+             )
+           );
+           (
+             Lower_bound_constraint (
+               Application_lower_bound (
+                 Type_variable (
+                   Ident ("unknown_function")
+                 ),
+                 Type_variable (
+                   Ident ("unknown_parameter")
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_result")
+               )
+             )
+           )
+         ]
+       ;;
+
+       printf
+         "Initial constraint set `%s'.\n"
+         (pretty_constraint_set initial_constraint_set)
+       ;;
+
+       (* Ordering constraint closure *)
+       let dependency_graph_constraint_set =
+         ordering_closure initial_constraint_set
+       ;;
+
+       printf
+         "Dependency graph constraint set `%s'.\n"
+         (pretty_constraint_set dependency_graph_constraint_set)
+       ;;
+
+       (* Dependency resolution *)
+       let dependency_graph =
+         dependency_resolution dependency_graph_constraint_set
+       ;;
+
+       printf
+         "Dependency graph `%s'.\n"
+         (pretty_dependency_graph dependency_graph)
+       ;;
+
+       (* Full constraint closure *)
+       let full_constraint_set =
+         full_closure dependency_graph initial_constraint_set
+       ;;
+
+       printf
+         "Full constraint set `%s'.\n"
+         (pretty_constraint_set dependency_graph_constraint_set)
+       ;;
+
+       printf
+         "Is consistent? `%b'.\n"
+         (is_consistent full_constraint_set)
+       ;;
+     #+END_SRC
