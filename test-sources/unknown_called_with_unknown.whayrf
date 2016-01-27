@@ -32,7 +32,7 @@ f = fun x -> {
   returnF = {};
 };
 conditionalF = f
-  ~ fun fun {} ~> {{}} ~> {{}}
+  ~ fun fun { a: {} } ~> {{}} ~> {{}}
   ? matchF -> {
     matchFReturn = {};
   } : antimatchF -> {
