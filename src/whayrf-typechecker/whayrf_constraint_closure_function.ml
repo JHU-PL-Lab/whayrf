@@ -84,7 +84,8 @@ let check
 (** READY *)
 let ready function_pattern_matching_case dependency_graph constraint_set =
   dependencies function_pattern_matching_case dependency_graph
-  |> Function_pattern_matching_case_set.for_all
+  |> Function_pattern_matching_case_set.enum
+  |> Enum.for_all
     (
       fun (
         Function_pattern_matching_case (

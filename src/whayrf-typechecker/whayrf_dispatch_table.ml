@@ -67,7 +67,10 @@ and unfreshen_record_value (Record_value (record_elements)) =
 (* Make sure that every function pattern match that can occur has an entry in
    the dispatch table. This is not part of the theory. *)
 let sanity_check constraint_set =
-  function_pattern_search constraint_set
+  let function_pattern_matching_cases =
+    function_pattern_search constraint_set
+  in
+  function_pattern_matching_cases
   |> Function_pattern_matching_case_set.enum
   |> Enum.iter
     (
@@ -113,7 +116,10 @@ let sanity_check constraint_set =
             "At least the function_pattern_matching_case `" ^
             pretty_function_pattern_matching_case function_pattern_matching_case ^
             "' is not present in the constraint set `" ^
-            pretty_constraint_set constraint_set ^ "' (others might not be present as well)."
+            pretty_constraint_set constraint_set ^
+            "' (others might not be present as well, there is/are " ^
+            string_of_int (Function_pattern_matching_case_set.cardinal function_pattern_matching_cases)
+            ^ " of them)."
           )
     )
 ;;
