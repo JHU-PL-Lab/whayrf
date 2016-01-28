@@ -64,7 +64,62 @@ and unfreshen_record_value (Record_value (record_elements)) =
   )
 ;;
 
+(* Make sure that every function pattern match that can occur has an entry in
+   the dispatch table. This is not part of the theory. *)
+let sanity_check constraint_set =
+  function_pattern_search constraint_set
+  |> Function_pattern_matching_case_set.enum
+  |> Enum.iter
+    (
+      fun (
+        (
+
+          Function_pattern_matching_case (
+            function_type,
+            pattern
+          )
+        ) as function_pattern_matching_case
+      ) ->
+        if (not
+              (
+                (
+                  Constraint_set.mem
+                    (
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_positive (
+                          function_type,
+                          pattern
+                        )
+                      )
+                    )
+                    constraint_set
+                ) ||
+                (
+                  Constraint_set.mem
+                    (
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_negative (
+                          function_type,
+                          pattern
+                        )
+                      )
+                    )
+                    constraint_set
+                )
+              )
+           )
+        then
+          raise @@ Invariant_failure (
+            "At least the function_pattern_matching_case `" ^
+            pretty_function_pattern_matching_case function_pattern_matching_case ^
+            "' is not present in the constraint set `" ^
+            pretty_constraint_set constraint_set ^ "' (others might not be present as well)."
+          )
+    )
+;;
+
 let build_dispatch_table constraint_set =
+  sanity_check constraint_set;
   fun value pattern ->
     match value with
     | Value_function (function_value) ->
