@@ -1,0 +1,49 @@
+# EXPECT-TYPEFAIL
+
+# let f x =
+#   let g y =
+#     x y;
+#     {}
+#   in
+#   case g of
+#   {} ~> {} -> {};
+#   {}
+# in
+# case f of
+# ({} ~> {}) ~> {} -> {}
+#
+# This test asserts the soundness of the Unknown Application Failure
+# inconsistency rule.
+
+f = fun x -> {
+  g = fun y -> {
+    xy = x y;
+    returnG = {};
+  };
+  conditionalG = g
+    ~ fun {} ~> {{}}
+    ? matchG -> {
+      matchGReturn = {};
+    } : antimatchG -> {
+      antimatchGBogusFunction = {};
+      antimatchGBogusFunctionParameter = {};
+      antimatchGReturn = antimatchGBogusFunction antimatchGBogusFunctionParameter;
+    };
+  returnF = {};
+};
+conditionalF = f
+  ~ fun fun { a: {} } ~> {{}} ~> {{}}
+  ? matchF -> {
+    matchFReturn = {};
+  } : antimatchF -> {
+    antimatchFBogusFunction = {};
+    antimatchFBogusFunctionParameter = {};
+    antimatchFReturn = antimatchFBogusFunction antimatchFBogusFunctionParameter;
+  };
+
+fuckingHell = fun fuckingHellParameter -> {
+  fuckingHellIdentity = fuckingHellParameter.myFuckingField;
+  fuckingHellReturn = {};
+};
+
+returnFWhatever = f fuckingHell;
