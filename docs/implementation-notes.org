@@ -1,5 +1,11 @@
 #+TITLE: Implementation notes
 
+* Specification
+
+  The specification for the system implemented here is in the =big-bang-doc=
+  repository, in the =6b21c6b68b4763dc4c3970335ca5d69ca621c12e= commit, in the
+  directories =rules/whayrf/= and =papers/ecoop-16/=.
+
 * Overview
 
   #+BEGIN_SRC dot :file images/overview.png :exports results
