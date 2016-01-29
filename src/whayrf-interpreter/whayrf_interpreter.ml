@@ -79,6 +79,7 @@ let fresh_wire (Function_value(param_x, Expr(body))) arg_x call_site_x =
   [head_clause] @ freshened_body @ [tail_clause]
 ;;
 
+(** Inner implementation of evaluation. Not meant to be directly called. *)
 let rec evaluate env lastvar cls dispatch_table =
   logger `debug (
       pretty_env env ^ "\n" ^
@@ -93,27 +94,24 @@ let rec evaluate env lastvar cls dispatch_table =
         match lastvar with
         | Some(x) -> (x, env)
         | None ->
-        (* TODO: different exception? *)
             raise (Failure "evaluation of empty expression!")
       end
   | (Clause(x, b)):: t ->
-      match b with
+    match b with
+
+      (* This rule is not on the relation, its job is to skip over clauses that
+         are ready to going to go to the environment. *)
       | Value_body(v) ->
           Environment.add env x v;
           evaluate env (Some x) t dispatch_table
+
+      (* VARIABLE LOOKUP *)
       | Var_body(x') ->
           let v = lookup env x' in
           Environment.add env x v;
           evaluate env (Some x) t dispatch_table
-      | Appl_body(x', x'') ->
-          begin
-            match lookup env x' with
-              | Value_record(_) as r -> raise (Evaluation_failure
-                  ("cannot apply " ^ pretty_var x' ^
-                    " as it contains non-function " ^ pretty_value r))
-              | Value_function(f) ->
-                  evaluate env (Some x) (fresh_wire f x'' x @ t) dispatch_table
-          end
+
+      (* PROJECTION *)
       | Projection_body(x',l) ->
           begin
             match lookup env x' with
@@ -131,12 +129,29 @@ let rec evaluate env lastvar cls dispatch_table =
                                                  ("cannot select " ^ pretty_var x' ^
                                                   " as it contains non-record " ^ pretty_value f))
           end
+
+      (* APPLICATION *)
+      | Appl_body(x', x'') ->
+          begin
+            match lookup env x' with
+              | Value_record(_) as r -> raise (Evaluation_failure
+                  ("cannot apply " ^ pretty_var x' ^
+                    " as it contains non-function " ^ pretty_value r))
+              | Value_function(f) ->
+                  evaluate env (Some x) (fresh_wire f x'' x @ t) dispatch_table
+          end
+
+      (* CONDITIONAL SUCCESS and CONDITIONAL FAILURE *)
       | Conditional_body(x',p,f1,f2) ->
         let successful_match = is_compatible (lookup env x') env p dispatch_table in
         let f_target = if successful_match then f1 else f2 in
         evaluate env (Some x) (fresh_wire f_target x' x @ t) dispatch_table
 ;;
 
+(** Façade for evaluation.
+
+    Not a single step of the Small Step Operation Semantics (->^1), but the
+    fixpoint that performs every operation available. *)
 let eval (Expr(cls)) dispatch_table =
   let env = Environment.create(20) in
   let repl_fn = repl_fn_for cls (Freshening_stack []) Var_set.empty in

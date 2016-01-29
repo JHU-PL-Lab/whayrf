@@ -7,42 +7,61 @@ open Printf;;
 
 open Whayrf_ast_pretty;;
 open Whayrf_consistency;;
-open Whayrf_constraint_closure;;
+open Whayrf_constraint_closure_full;;
+open Whayrf_constraint_closure_ordering;;
+open Whayrf_dependency_resolution;;
 open Whayrf_dispatch_table;;
 open Whayrf_initial_alignment;;
 open Whayrf_types;;
 open Whayrf_types_pretty;;
 
-(* ************************************************************************** *)
-(* LOGGER *)
-
 let logger = Whayrf_logger.make_logger "Whayrf_typechecker";;
 
-(* ************************************************************************** *)
-(* TYPECHECKING *)
-
-(**
-  Performs typechecking of the provided expression.
-  @param e The expression to typecheck.
-  @return [true] if the expression typechecks; [false] if it does not.
-*)
-let typecheck e =
-  (* Step 1: Initially align the expression. *)
-  let Constrained_type (_, constraint_set) = initial_align_expr e in
+let typecheck expression =
   logger `trace
     (sprintf
-      "Initial alignment of %s yields constraints %s"
-      (pretty_expr e) (pretty_constraint_set constraint_set)
+      "Typechecking expression `%s'."
+      (pretty_expr expression)
     )
   ;
-  (* Step 2: Perform constraint closure. *)
-  let constraint_set' = perform_closure constraint_set in
+  (* Initial alignment. *)
+  let Constrained_type (_, initial_constraint_set) = initial_align_expr expression in
   logger `trace
     (sprintf
-      "Constraint closure yields constraints %s"
-      (pretty_constraint_set constraint_set')
+      "Initial constraint set `%s'."
+      (pretty_constraint_set initial_constraint_set)
     )
   ;
-  (* Step 3: Look for inconsistencies. *)
-  (is_consistent constraint_set', build_dispatch_table constraint_set')
-  ;;
+  (* Ordering constraint closure *)
+  let dependency_graph_constraint_set =
+    ordering_closure initial_constraint_set
+  in
+  logger `trace
+    (sprintf
+      "Dependency graph constraint set `%s'."
+      (pretty_constraint_set dependency_graph_constraint_set)
+    )
+  ;
+  (* Dependency resolution *)
+  let dependency_graph =
+    dependency_resolution dependency_graph_constraint_set
+  in
+  logger `trace
+    (sprintf
+      "Dependency graph `%s'."
+      (pretty_dependency_graph dependency_graph)
+    )
+  ;
+  (* Full constraint closure *)
+  let full_constraint_set =
+    full_closure dependency_graph initial_constraint_set
+  in
+  logger `trace
+    (sprintf
+      "Full constraint set `%s'."
+      (pretty_constraint_set dependency_graph_constraint_set)
+    )
+  ;
+  (* Immediately consistent? *)
+  (is_consistent full_constraint_set, build_dispatch_table full_constraint_set)
+;;

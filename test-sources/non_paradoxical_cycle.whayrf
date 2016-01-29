@@ -4,13 +4,17 @@
 # the one from the overview section
 # of the paper:
 #
-# let rec paradox n:int =
-#   case paradox of
+# let rec cycle n:int =
+#   case cycle of
 #   int ~> {} -> 0
-#   _ -> {}
-# in paradox 4
+#   _ -> 0
+# in cycle 4
 #
-# The paradox is detected and typechecking fails.
+# The cycle is stable only on the `anti-match' condition, but we default to
+# `match' when cycle breaking, so typechecking fails.
+#
+# This differs from `tautology_simple.wharf' because `tautology_simple.wharf'
+# stable on the `match' condition.
 
 yCombinator = fun fYCombinator -> {
 
@@ -33,22 +37,22 @@ yCombinator = fun fYCombinator -> {
   returnYCombinator = yCombinatorFunction yCombinatorParameter;
 };
 
-partialParadox = fun recursePartialParadox -> {
-  returnRecursePartialParadox = fun n -> {
-    returnPartialParadox = recursePartialParadox ~ fun { int: {} } ~> { { notInt: {} } } ?
-      partialParadoxMatch -> {
-        intForPartialParadoxMatch = {};
-        returnPartialParadoxMatch = { int = intForPartialParadoxMatch }
-      } : partialParadoxAntimatch -> {
-        notIntForPartialParadoxMatch = {};
-        returnPartialParadoxAntimatchMatch = { notInt = notIntForPartialParadoxMatch }
+partialCycle = fun recursePartialCycle -> {
+  returnRecursePartialCycle = fun n -> {
+    returnPartialCycle = recursePartialCycle ~ fun { int: {} } ~> { { notInt: {} } } ?
+      partialCycleMatch -> {
+        intForPartialCycleMatch = {};
+        returnPartialCycleMatch = { int = intForPartialCycleMatch }
+      } : partialCycleAntimatch -> {
+        notIntForPartialCycleMatch = {};
+        returnPartialCycleAntimatchMatch = { int = notIntForPartialCycleMatch }
       }
   };
 };
 
-paradox = yCombinator partialParadox;
+cycle = yCombinator partialCycle;
 
-intForParadox = {};
-parameterForParadox = { int = intForParadox };
+intForCycle = {};
+parameterForCycle = { int = intForCycle };
 
-return = paradox parameterForParadox;
+return = cycle parameterForCycle;

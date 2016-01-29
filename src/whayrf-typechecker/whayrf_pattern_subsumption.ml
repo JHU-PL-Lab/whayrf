@@ -8,25 +8,40 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Implements the Pattern Subsumption rules which determines if a pattern is
-    compatible with every type that another pattern would be compatible. *)
-let is_subsumption_pattern pattern_1 pattern_2 =
-  let rec step pattern_constraint_set =
-    try
-      let pattern_constraint_closed_pattern_constraint_set =
-        perform_pattern_constraint_closure pattern_constraint_set
-      in
-      if Pattern_constraint_set.is_empty pattern_constraint_closed_pattern_constraint_set then
-        true
-      else
-        pattern_constraint_closed_pattern_constraint_set
-        |> perform_transitive_pattern_closure
-        |> filter_out_wobbly_variables
-        |> step
-    with
-    | Contradiction_found -> false
-  in
-  step @@ initial_alignment pattern_1 pattern_2
+(** Pattern Subsumption relation, which determines if a pattern is compatible
+    with every type that another pattern would be compatible with. *)
+let rec is_subsumption_pattern pattern_1 pattern_2 =
+  match (pattern_1, pattern_2) with
+
+  (* RECORD *)
+  | (
+    Record_pattern (pattern_1_elements),
+    Record_pattern (pattern_2_elements)
+  ) ->
+    pattern_2_elements
+    |> Ident_map.enum
+    |> Enum.for_all
+      (
+        fun (pattern_2_label, pattern_2_subpattern) ->
+          pattern_1_elements
+          |> Ident_map.enum
+          |> Enum.exists
+            (
+              fun (pattern_1_label, pattern_1_subpattern) ->
+                (pattern_1_label = pattern_2_label) &&
+                is_subsumption_pattern pattern_1_subpattern pattern_2_subpattern
+            )
+      )
+
+  (* FUNCTION *)
+  | (
+    Function_pattern (pattern_1_parameter_pattern, pattern_1_return_pattern),
+    Function_pattern (pattern_2_parameter_pattern, pattern_2_return_pattern)
+  ) ->
+    is_subsumption_pattern pattern_2_parameter_pattern pattern_1_parameter_pattern &&
+    is_subsumption_pattern pattern_1_return_pattern pattern_2_return_pattern
+
+  | _ -> false
 ;;
 
 (** P-N PATTERN SETS *)

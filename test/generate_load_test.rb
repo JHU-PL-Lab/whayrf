@@ -42,7 +42,7 @@ def render width, depth, current_depth
   function_<%= id %> = fun parameter_<%= id %> -> {
     return_function_<%= id %> = parameter_<%= id %>;
   };
-  result_of_matching_function_<%= id %> = function_<%= id %> ~ forall pattern_variable_<%= id %>. fun pattern_variable_<%= id %> ~> { pattern_variable_<%= id %> } ?
+  result_of_matching_function_<%= id %> = function_<%= id %> ~ fun {} ~> { {} } ?
     match_function_<%= id %> -> {
       <%= render width, depth, (current_depth + 1) -%>
       return_match_function_<%= id %> = {};

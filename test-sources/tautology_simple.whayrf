@@ -1,16 +1,13 @@
-# EXPECT-TYPEFAIL
+# EXPECT-TYPECHECK
+# EXPECT-EVALUATE
 
-# This captures the essence of the following snippet which is a variation on
-# the one from the overview section
+# This captures the essence of the following snippet from the overview section
 # of the paper:
 #
-# let rec paradox n:int =
-#   case paradox of
-#   int ~> {} -> 0
-#   _ -> {}
-# in paradox 4
-#
-# The paradox is detected and typechecking fails.
+# let rec selfMatch n:int =
+#   case selfMatch of
+#   int ~> {} -> {}
+# in selfMatch 4
 
 yCombinator = fun fYCombinator -> {
 
@@ -33,22 +30,22 @@ yCombinator = fun fYCombinator -> {
   returnYCombinator = yCombinatorFunction yCombinatorParameter;
 };
 
-partialParadox = fun recursePartialParadox -> {
-  returnRecursePartialParadox = fun n -> {
-    returnPartialParadox = recursePartialParadox ~ fun { int: {} } ~> { { notInt: {} } } ?
-      partialParadoxMatch -> {
-        intForPartialParadoxMatch = {};
-        returnPartialParadoxMatch = { int = intForPartialParadoxMatch }
-      } : partialParadoxAntimatch -> {
-        notIntForPartialParadoxMatch = {};
-        returnPartialParadoxAntimatchMatch = { notInt = notIntForPartialParadoxMatch }
+partialSelfMatch = fun recursePartialSelfMatch -> {
+  returnRecursePartialSelfMatch = fun n -> {
+    returnPartialSelfMatch = recursePartialSelfMatch ~ fun { int: {} } ~> { {} } ?
+      recursePartialSelfMatch -> {
+        returnPartialSelfMatchMatch = {}
+      } : recursePartialSelfAntimatch -> {
+        bogusFunctionPartialSelfMatchAntimatch = {};
+        parameterForBogusFunctionPartialSelfMatchAntimatch = {};
+        returnPartialSelfMatchAntimatch = bogusFunctionPartialSelfMatchAntimatch parameterForBogusFunctionPartialSelfMatchAntimatch
       }
   };
 };
 
-paradox = yCombinator partialParadox;
+selfMatch = yCombinator partialSelfMatch;
 
-intForParadox = {};
-parameterForParadox = { int = intForParadox };
+intForSelfMatch = {};
+parameterForSelfMatch = { int = intForSelfMatch };
 
-return = paradox parameterForParadox;
+return = selfMatch parameterForSelfMatch;

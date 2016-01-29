@@ -9,7 +9,7 @@ open Whayrf_types;;
 *)
 
 (** Perform initial alignment on expressions (lists of clauses) (first section
-    of diagram).
+    of figure).
 *)
 let rec initial_align_expr (Expr(clauses)) =
   clauses
@@ -22,7 +22,7 @@ let rec initial_align_expr (Expr(clauses)) =
       )
   )
 
-(** Perform initial alignment on clauses (second section of diagram). *)
+(** Perform initial alignment on clauses (second section of figure). *)
 and initial_align_clause (Clause (Var(left_ident, _), body)) =
   let type_variable = Type_variable (left_ident) in
   match body with
@@ -55,6 +55,23 @@ and initial_align_clause (Clause (Var(left_ident, _), body)) =
         Constraint_set.empty
     )
 
+  (* PROJECTION *)
+  | Projection_body (Var(record_ident, _), label) ->
+    Constrained_type (
+      type_variable,
+      Constraint_set.add
+        (
+          Lower_bound_constraint (
+            Projection_lower_bound (
+              Type_variable (record_ident),
+              label
+            ),
+            type_variable
+          )
+        )
+        Constraint_set.empty
+    )
+
   (* FUNCTION *)
   | Value_body (Value_function(function_value)) ->
     Constrained_type (
@@ -72,23 +89,6 @@ and initial_align_clause (Clause (Var(left_ident, _), body)) =
                   Negative_pattern_set(Pattern_set.empty)
                 )
               )
-            ),
-            type_variable
-          )
-        )
-        Constraint_set.empty
-    )
-
-  (* PROJECTION *)
-  | Projection_body (Var(record_ident, _), label) ->
-    Constrained_type (
-      type_variable,
-      Constraint_set.add
-        (
-          Lower_bound_constraint (
-            Projection_lower_bound (
-              Type_variable (record_ident),
-              label
             ),
             type_variable
           )
@@ -148,7 +148,7 @@ and initial_align_clause (Clause (Var(left_ident, _), body)) =
         Constraint_set.empty
     )
 
-(** Perform initial alignment on function values (third section of diagram). *)
+(** Perform initial alignment on function values (third section of figure). *)
 and initial_align_function (Function_value (Var(parameter_ident, _), body)) =
   Function_type (
     (Type_variable parameter_ident),

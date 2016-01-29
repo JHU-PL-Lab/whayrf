@@ -1,0 +1,291 @@
+#+TITLE: Implementation notes
+
+* Specification
+
+  The specification for the system implemented here is in the =big-bang-doc=
+  repository, in the =6b21c6b68b4763dc4c3970335ca5d69ca621c12e= commit, in the
+  directories =rules/whayrf/= and =papers/ecoop-16/=.
+
+* Overview
+
+  #+BEGIN_SRC dot :file images/overview.png :exports results
+    digraph overview {
+
+      ////////////////
+      // Typography //
+      ////////////////
+
+      fontname = "Open Sans Bold";
+      node [fontname = "Open Sans Bold", fontsize = 14];
+      edge [fontname = "Open Sans Bold", fontsize = 14];
+
+      //////////////////
+      // Colorschemes //
+      //////////////////
+
+      // Plain black-on-white.
+
+      bgcolor = transparent;
+      color = "#333333";
+      fontcolor = "#333333";
+      node [color = "#333333", fontcolor = "#333333"];
+      edge [color = "#333333", fontcolor = "#333333"];
+
+      ///////////////
+      // Box style //
+      ///////////////
+
+      style = "rounded";
+      node [shape = box, style = "rounded"];
+
+      ///////////
+      // Graph //
+      ///////////
+
+      "Program" -> "Initial constraint set" [label = " 1 · Initial alignment"];
+
+      subgraph cluster_typechecking {
+        label = "Typechecking";
+
+        "Initial constraint set" -> "Dependency graph constraint set" [label = " 2 · Ordering constraint closure"];
+        "Dependency graph constraint set" -> "Dependency graph" [label = " 3 · Depedency resolution"];
+        full_constraint_closure [shape = point, width = 0.01, height = 0.01];
+        "Dependency graph" -> full_constraint_closure [dir = none];
+        "Initial constraint set" -> full_constraint_closure [dir = none];
+        full_constraint_closure -> "Full constraint set" [label = " 4 · Full constraint closure"];
+        "5 · Immediately consistent?" [shape = diamond];
+        "Full constraint set" -> "5 · Immediately consistent?";
+      }
+
+      typechecking_failed [style = invisible];
+      "5 · Immediately consistent?" -> typechecking_failed [label = " 6.1 · No · Typechecking failed"];
+      "5 · Immediately consistent?" -> "Type dispatch relation" [label = " 6.2 · Yes · Typechecking succeeded\n   7 · Type dispatch relation extraction"];
+
+      "Type dispatch relation" -> "Expression dispatch relation" [label = " 8 · Expression dispatch relation extraction"];
+      evaluation [shape = point, width = 0.01, height = 0.01];
+      "Expression dispatch relation" -> evaluation [dir = none];
+      "Program" -> evaluation [dir = none];
+      evaluation -> "Computation result" [label = " 9 · Evaluation"];
+    }
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:images/overview.png]]
+
+* Constraint closures
+
+  - Rules :: Functions that take a constraint set as a parameter and return an
+             augmented constraint set with new constraints.
+
+             Don't perform a single step, but the fixpoint (=ω=).
+
+             Return the input constraint set augmented with the new constraints,
+             /not/ only the new constraints.
+
+  - Closures :: Functions that compose the action of rules or other
+                closures. Respect the same behavior as rules.
+
+  Some rules and closures take additional parameters (e.g. a dependency
+  graph). They should be /curried in/ before usage.
+
+** Constraint closure dependency graph
+
+   #+BEGIN_SRC dot :file images/constraint-closure-dependency-graph.png :exports results
+     digraph constraint_closure_dependency_graph {
+
+       ////////////////
+       // Typography //
+       ////////////////
+
+       fontname = "Open Sans Bold";
+       node [fontname = "Open Sans Bold", fontsize = 14];
+       edge [fontname = "Open Sans Bold", fontsize = 14];
+
+       //////////////////
+       // Colorschemes //
+       //////////////////
+
+       // Plain black-on-white.
+
+       bgcolor = transparent;
+       color = "#333333";
+       fontcolor = "#333333";
+       node [color = "#333333", fontcolor = "#333333"];
+       edge [color = "#333333", fontcolor = "#333333"];
+
+       ///////////////
+       // Box style //
+       ///////////////
+
+       style = "rounded";
+       node [shape = box, style = "rounded"];
+
+       ///////////
+       // Graph //
+       ///////////
+
+       subgraph cluster_legend {
+         label = "Legend";
+
+         "A" -> "B" [label = " uses"];
+       }
+
+       "Ordering constraint closure" -> "Non-function constraint closure";
+       "Ordering constraint closure" -> "Ordering-function constraint closure";
+
+       "Full constraint closure" -> "Non-function constraint closure";
+       "Full constraint closure" -> "Function constraint closure";
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:images/constraint-closure-dependency-graph.png]]
+
+   Leaves are based directly on rules.
+
+* Debugging tips
+
+  1. Squelch constraints can only appear in subordinate closures.
+
+  2. Unknown types can only appear in subordinate closures or as the result of
+     Ordering Constraint Closure (by means of Ordering Function Constraint
+     Closure).
+
+  3. Dependency graphs are pretty printed as [[http://graphviz.org/][Graphviz]] input. Trace dependency
+     graphs by enabling the =trace= log:
+
+     #+BEGIN_SRC sh
+       $ ./whayrf_toploop.byte --log Whayrf_typechecker=trace
+     #+END_SRC
+
+  4. Debug a constraint set (as opposed to a Whayrf program):
+
+     In =whayrf_toploop.ml=, change the main function ~let () =...~ to something
+     like (and give your constraint set as =initial_constraint_set=):
+
+     #+BEGIN_SRC ocaml
+       open Printf;;
+
+       open Whayrf_ast;;
+       open Whayrf_constraint_closure_full;;
+       open Whayrf_constraint_closure_ordering;;
+       open Whayrf_dependency_resolution;;
+       open Whayrf_consistency;;
+       open Whayrf_types;;
+       open Whayrf_types_pretty;;
+
+       let initial_constraint_set =
+         Constraint_set.of_list [
+           (
+             Lower_bound_constraint (
+               Restricted_type_lower_bound (
+                 Restricted_type (
+                   Unknown_type,
+                   Type_restriction (
+                     Positive_pattern_set (
+                       Pattern_set.singleton (
+                         Function_pattern (
+                           Record_pattern (
+                             Ident_map.singleton
+                               (
+                                 Ident ("unknown_key")
+                               )
+                               (
+                                 Record_pattern (Ident_map.empty)
+                               )
+                           ),
+                           Record_pattern (Ident_map.empty)
+                         )
+                       )
+                     ),
+                     Negative_pattern_set (
+                       Pattern_set.empty
+                     )
+                   )
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_function")
+               )
+             )
+           );
+           (
+             Lower_bound_constraint (
+               Restricted_type_lower_bound (
+                 Restricted_type (
+                   Unknown_type,
+                   Type_restriction (
+                     Positive_pattern_set (
+                       Pattern_set.singleton (
+                         Record_pattern (Ident_map.empty)
+                       )
+                     ),
+                     Negative_pattern_set (
+                       Pattern_set.empty
+                     )
+                   )
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_parameter")
+               )
+             )
+           );
+           (
+             Lower_bound_constraint (
+               Application_lower_bound (
+                 Type_variable (
+                   Ident ("unknown_function")
+                 ),
+                 Type_variable (
+                   Ident ("unknown_parameter")
+                 )
+               ),
+               Type_variable (
+                 Ident ("unknown_result")
+               )
+             )
+           )
+         ]
+       ;;
+
+       printf
+         "Initial constraint set `%s'.\n"
+         (pretty_constraint_set initial_constraint_set)
+       ;;
+
+       (* Ordering constraint closure *)
+       let dependency_graph_constraint_set =
+         ordering_closure initial_constraint_set
+       ;;
+
+       printf
+         "Dependency graph constraint set `%s'.\n"
+         (pretty_constraint_set dependency_graph_constraint_set)
+       ;;
+
+       (* Dependency resolution *)
+       let dependency_graph =
+         dependency_resolution dependency_graph_constraint_set
+       ;;
+
+       printf
+         "Dependency graph `%s'.\n"
+         (pretty_dependency_graph dependency_graph)
+       ;;
+
+       (* Full constraint closure *)
+       let full_constraint_set =
+         full_closure dependency_graph initial_constraint_set
+       ;;
+
+       printf
+         "Full constraint set `%s'.\n"
+         (pretty_constraint_set dependency_graph_constraint_set)
+       ;;
+
+       printf
+         "Is consistent? `%b'.\n"
+         (is_consistent full_constraint_set)
+       ;;
+     #+END_SRC

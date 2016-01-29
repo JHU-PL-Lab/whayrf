@@ -7,13 +7,13 @@ type type_variable =
   | Type_variable of ident
 ;;
 
-module Pattern_order =
+module Type_Variable_order =
 struct
-  type t = pattern
+  type t = type_variable
   let compare = compare
 end;;
 
-module Pattern_set = Set.Make(Pattern_order);;
+module Type_variable_set = Set.Make(Type_Variable_order);;
 
 type positive_pattern_set =
   | Positive_pattern_set of Pattern_set.t
@@ -75,3 +75,26 @@ end
 and Constraint_set : (Set.S with type elt = Types.tconstraint) = Set.Make(Constraint_order);;
 
 include Types;;
+
+(** The function_type-pattern pair used in the main paper for ordering, cycle
+    detection and returned by FUN PATS. *)
+type function_pattern_matching_case = Function_pattern_matching_case of function_type * pattern;;
+
+module Function_pattern_matching_case_order =
+struct
+  type t = function_pattern_matching_case
+  let compare = compare
+end
+;;
+module Function_pattern_matching_case_set = Set.Make(Function_pattern_matching_case_order);;
+
+module Function_pattern_matching_case_map = Map.Make(Function_pattern_matching_case_order);;
+
+(** A dependency graph is a map. The keys are function_type-pattern pairs and the values are sets of function_type-pattern pairs that are their dependencies.
+
+   { dependent: { dependencies, ... }, ... }
+*)
+type dependency_graph =
+  | Dependency_graph of
+      Function_pattern_matching_case_set.t Function_pattern_matching_case_map.t
+;;

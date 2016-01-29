@@ -58,35 +58,41 @@ let is_inconsistent constraint_set =
                       (parameter_type_variable = other_parameter_type_variable) &&
                       (
                         match function_ttype with
+                        (* By APPLICATION FAILURE, this constraints are _not_
+                           inconsistent. *)
                         | Function_type_type _ ->
                           false
+                        (* UNKNOWN APPLICATION FAILURE *)
                         | Unknown_type ->
-                          not (
-                            positive_patterns
-                            |> Pattern_set.enum
-                            |> Enum.exists
-                              (
-                                fun (pattern) ->
-                                  match pattern with
-                                  | Function_pattern (parameter_pattern, _) ->
-                                    is_compatible_restricted_type
-                                      parameter_restricted_type
-                                      constraint_set
-                                      (
-                                        Type_restriction (
-                                          Positive_pattern_set (
-                                            Pattern_set.add
-                                              parameter_pattern
-                                              Pattern_set.empty
-                                          ),
-                                          Negative_pattern_set (
-                                            Pattern_set.empty
+                          is_compatible_restricted_type
+                            parameter_restricted_type
+                            constraint_set
+                            (
+                              Type_restriction (
+                                Positive_pattern_set (
+                                  Pattern_set.empty
+                                ),
+                                Negative_pattern_set (
+                                  positive_patterns
+                                  |> Pattern_set.filter_map
+                                    (
+                                      fun pattern ->
+                                        match pattern with
+                                        | Function_pattern (
+                                            parameter_pattern,
+                                            _
+                                          ) ->
+                                          Some (
+                                            parameter_pattern
                                           )
-                                        )
-                                      )
-                                  | _ -> false
+
+                                        | _ -> None
+                                    )
+                                )
                               )
-                          )
+                            )
+                        (* Any other type that shows up in the place of a
+                           function in an application is an inconsistency. *)
                         | _ -> true
                       )
 
@@ -112,6 +118,7 @@ let is_inconsistent constraint_set =
                     ) ->
                       (record_type_variable = other_record_type_variable) &&
                       (not
+                         (* HAS FIELD *)
                          (
                            match ttype with
                            | Record_type (record_elements) ->
@@ -145,6 +152,23 @@ let is_inconsistent constraint_set =
                             Negative_pattern_set (Pattern_set.add pattern Pattern_set.empty)
                           )
                         )
+
+                    (* AMBIGUOUS DISPATCH *)
+                    | (
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_positive (
+                          positive_function_type, positive_pattern
+                        )
+                      ),
+                      Function_pattern_matching_constraint (
+                        Function_pattern_matching_constraint_negative (
+                          negative_function_type, negative_pattern
+                        )
+                      ),
+                      _
+                    ) ->
+                      (positive_function_type = negative_function_type) &&
+                      (positive_pattern = negative_pattern)
 
                     | _ -> false
                 )

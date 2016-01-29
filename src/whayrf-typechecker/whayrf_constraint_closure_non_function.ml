@@ -1,8 +1,11 @@
 open Batteries;;
+open Printf;;
 
 open Whayrf_ast;;
 open Whayrf_consistency;;
+open Whayrf_constraint_closure_fixpoint;;
 open Whayrf_initial_alignment;;
+open Whayrf_logger;;
 open Whayrf_notation;;
 open Whayrf_pattern_subsumption;;
 open Whayrf_type_compatibility;;
@@ -10,13 +13,7 @@ open Whayrf_types;;
 open Whayrf_types_pretty;;
 open Whayrf_utils;;
 
-(** Perform Non-Function Constraint Closure (i.e. the one with the N
-    superscript).
-
-    Most of these functions don't perform a single step, but the fixpoint. They
-    only return the new constraints that can be added to the constraint set, not
-    the already augmented constraint set. This makes it easier to determine when
-    there are no more steps to take (i.e. the closure is finished). *)
+let logger = make_logger "Whayrf_constraint_closure_non_function";;
 
 (** TRANSITIVITY *)
 let close_by_transitivity constraint_set =
@@ -57,6 +54,7 @@ let close_by_transitivity constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** PROJECTION *)
@@ -135,6 +133,12 @@ let close_by_projection constraint_set =
                                           ttype,
                                           Type_restriction (
                                             Positive_pattern_set (
+                                              (* On the Figure, note that `\tau'
+                                                 is a restricted type
+                                                 already. The Figure Notation
+                                                 says, in that case, we should
+                                                 union the patterns in the
+                                                 filter together. *)
                                               Pattern_set.union
                                                 positive_patterns
                                                 projected_patterns
@@ -161,6 +165,7 @@ let close_by_projection constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** APPLICATION *)
@@ -246,6 +251,7 @@ let close_by_application constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** CONDITIONAL SUCCESS *)
@@ -318,6 +324,11 @@ let close_by_conditional_success constraint_set =
                                 ttype,
                                 Type_restriction (
                                   Positive_pattern_set (
+                                    (* On the Figure, note that `\tau' is a
+                                       restricted type already. The Figure
+                                       Notation says, in that case, we should
+                                       union the patterns in the filter
+                                       together. *)
                                     Pattern_set.add
                                       pattern
                                       positive_patterns
@@ -349,6 +360,7 @@ let close_by_conditional_success constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** CONDITIONAL FAILURE *)
@@ -425,6 +437,11 @@ let close_by_conditional_failure constraint_set =
                                   ),
                                   Negative_pattern_set (
                                     Pattern_set.add
+                                      (* On the Figure, note that `\tau' is a
+                                         restricted type already. The Figure
+                                         Notation says, in that case, we should
+                                         union the patterns in the filter
+                                         together. *)
                                       pattern
                                       negative_patterns
                                   )
@@ -452,6 +469,7 @@ let close_by_conditional_failure constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** UNKNOWN APPLICATION *)
@@ -480,7 +498,7 @@ let close_by_unknown_application constraint_set =
                       Unknown_type,
                       Type_restriction (
                         Positive_pattern_set (positive_patterns),
-                        Negative_pattern_set (negative_patterns)
+                        _
                       )
                     )
                   ),
@@ -553,6 +571,7 @@ let close_by_unknown_application constraint_set =
   )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
 (** UNKNOWN PROJECTION *)
@@ -617,16 +636,21 @@ let close_by_unknown_projection constraint_set =
     )
   |> Enum.concat
   |> Constraint_set.of_enum
+  |> Constraint_set.union constraint_set
 ;;
 
-(** Entry point for non-function closure. Perform closure rules until fixpoint
-    (omega) is reached. This returns the augmented constraint set with the new
-    constraints as well as the original constraints. *)
-let rec perform_non_function_closure perform_closure constraint_set =
-  (* The order in which operations happen here is irrelevant for the correct
-       behavior of the program. *)
-  let closure_functions =
+(** Non-function constraint closure (N superscript) *)
+let non_function_closure constraint_set =
+  logger `trace
+    (sprintf
+       "`non_function_closure' called with `constraint_set' = `%s'."
+       (pretty_constraint_set constraint_set)
+    )
+  ;
+
+  closure_fixpoint
     [
+      (* The order is irrelevant for the correctness of the program. *)
       close_by_transitivity;
       close_by_projection;
       close_by_application;
@@ -635,20 +659,5 @@ let rec perform_non_function_closure perform_closure constraint_set =
       close_by_unknown_application;
       close_by_unknown_projection
     ]
-  in
-  let augmented_constraint_set =
-    List.fold_left
-      (
-        fun partially_augmented_constraint_set closure_function ->
-          let inferred_constraints = closure_function partially_augmented_constraint_set in
-          Constraint_set.union partially_augmented_constraint_set inferred_constraints
-      )
-      constraint_set
-      closure_functions
-  in
-  if (Enum.count (Constraint_set.enum constraint_set)) <>
-     (Enum.count (Constraint_set.enum augmented_constraint_set)) then
-    perform_non_function_closure perform_closure augmented_constraint_set
-  else
-    augmented_constraint_set
+    constraint_set
 ;;

@@ -86,3 +86,45 @@ and pretty_type_restriction (
 and pretty_restricted_type (Restricted_type(ttype, type_restriction)) =
   pretty_ttype ttype ^ "|" ^ pretty_type_restriction type_restriction
 ;;
+
+let pretty_function_pattern_matching_case (
+    Function_pattern_matching_case (
+      function_type,
+      pattern
+    )
+  ) =
+  "<" ^ pretty_function_type function_type ^ ", " ^ pretty_pattern pattern ^ ">"
+;;
+
+let pretty_dependency_graph (
+    Dependency_graph dependency_graph_elements
+  ) =
+  let graphviz_function_pattern_matching_case function_pattern_matching_case =
+    "\"" ^ pretty_function_pattern_matching_case function_pattern_matching_case ^ "\""
+  in
+  "Graphviz source code:\ndigraph {" ^
+  (
+    dependency_graph_elements
+    |> Function_pattern_matching_case_map.enum
+    |> Enum.map
+      (
+        fun (
+          this_function_pattern_matching_case,
+          this_function_pattern_matching_case_dependencies
+        ) ->
+          graphviz_function_pattern_matching_case this_function_pattern_matching_case ^
+          ";" ^ (
+            this_function_pattern_matching_case_dependencies
+            |> Function_pattern_matching_case_set.enum
+            |> Enum.map
+              (
+                fun this_function_pattern_matching_case_dependency ->
+                  graphviz_function_pattern_matching_case this_function_pattern_matching_case ^ " -> " ^
+                  graphviz_function_pattern_matching_case this_function_pattern_matching_case_dependency ^ ";"
+              )
+            |> Enum.fold (^) ""
+          )
+      )
+    |> Enum.fold (^) ""
+  ) ^ "}"
+;;
