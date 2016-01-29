@@ -635,7 +635,14 @@ let affection_closure constraint_set =
     constraint_set
 ;;
 
-(** ≺C *)
+(** ≺C
+
+    This implementation faithfully implements the \ll_C relation. Yet, it
+    exhibits a weird behavior in which transitive dependencies are also
+    captured. That means, instead of the \prec relation, the code implements the
+    \prec^{+} relation.
+
+    It's something to investigate in the future. *)
 let is_dependency
     potential_dependency_function_pattern_matching_case
     dependent_function_pattern_matching_case
