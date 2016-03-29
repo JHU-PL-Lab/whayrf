@@ -91,6 +91,7 @@ Library "whayrf-typechecker"
 Executable "whayrf-toploop"
   Path: src/whayrf-toploop
   MainIs: whayrf_toploop.ml
+  CompiledObject: native
   BuildDepends:
     whayrf-ast,
     whayrf-interpreter,
@@ -101,6 +102,7 @@ Executable "whayrf-toploop"
 Executable "test-whayrf"
   Path: test/
   MainIs: test_whayrf.ml
+  CompiledObject: native
   BuildDepends:
     whayrf-interpreter,
     whayrf-parser,

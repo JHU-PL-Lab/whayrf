@@ -7,3 +7,4 @@
 /setup.ml
 /test_whayrf.byte
 /whayrf_toploop.byte
+/*.native
