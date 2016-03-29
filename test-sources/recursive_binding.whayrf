@@ -1,0 +1,3 @@
+# EXPECT-ILLFORMED
+
+x = x;
