@@ -1,0 +1,4 @@
+# EXPECT-ILLFORMED
+
+x = {};
+c = x ~ {l : {}} ? a -> { x = {} } : b -> { rb = {n = x}; };

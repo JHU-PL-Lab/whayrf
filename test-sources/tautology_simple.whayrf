@@ -33,9 +33,9 @@ yCombinator = fun fYCombinator -> {
 partialSelfMatch = fun recursePartialSelfMatch -> {
   returnRecursePartialSelfMatch = fun n -> {
     returnPartialSelfMatch = recursePartialSelfMatch ~ fun { int: {} } ~> { {} } ?
-      recursePartialSelfMatch -> {
+      recursePartialSelfMatchMatch -> {
         returnPartialSelfMatchMatch = {}
-      } : recursePartialSelfAntimatch -> {
+      } : recursePartialSelfMatchAntimatch -> {
         bogusFunctionPartialSelfMatchAntimatch = {};
         parameterForBogusFunctionPartialSelfMatchAntimatch = {};
         returnPartialSelfMatchAntimatch = bogusFunctionPartialSelfMatchAntimatch parameterForBogusFunctionPartialSelfMatchAntimatch
